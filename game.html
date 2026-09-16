@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEON RUN</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black:  #0D0D0D;
+      --white:  #FAFAF5;
+      --mint:   #B6F5D8;
+      --pink:   #FFB3CB;
+      --peach:  #FFCBA4;
+      --font-h: 'Syne', sans-serif;
+      --font-b: 'IBM Plex Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0D0D0D; }
+    canvas { display: block; }
+
+    /* ── HUD ── */
+    #hud {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: none; justify-content: space-between; align-items: center;
+      padding: 16px 28px; pointer-events: none; z-index: 10;
+    }
+    .hud-box {
+      font-family: var(--font-b); font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      background: var(--black); border: 2px solid var(--mint);
+      box-shadow: 3px 3px 0 var(--mint); padding: 6px 16px; color: var(--mint);
+    }
+    #scoreVal { font-family: var(--font-h); font-size: 1.4rem; font-weight: 800; }
+    #comboBox { display: none; border-color: #FFD700; box-shadow: 3px 3px 0 #FFD700; color: #FFD700; }
+    #comboVal { font-family: var(--font-h); font-size: 1.4rem; font-weight: 800; }
+
+    /* ── SCREENS ── */
+    .screen {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 24px;
+      background: var(--black);
+      background-image:
+        linear-gradient(rgba(182,245,216,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(182,245,216,0.04) 1px, transparent 1px);
+      background-size: 40px 40px; z-index: 20;
+    }
+    .screen.hidden { display: none; }
+
+    @keyframes fadeIn {
+      from { opacity:0; transform:translateY(14px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .screen > * { animation: fadeIn 0.4s ease both; }
+    .screen > *:nth-child(2) { animation-delay: 0.1s; }
+    .screen > *:nth-child(3) { animation-delay: 0.2s; }
+    .screen > *:nth-child(4) { animation-delay: 0.3s; }
+
+    .s-title {
+      font-family: var(--font-h); font-size: clamp(3rem, 9vw, 6rem);
+      font-weight: 800; letter-spacing: -3px; line-height: 1;
+      color: var(--white); text-align: center;
+    }
+    .s-title em { font-style: normal; color: var(--mint); text-shadow: 0 0 30px rgba(182,245,216,0.5); }
+    .s-sub {
+      font-family: var(--font-b); font-size: 0.7rem; letter-spacing: 4px;
+      text-transform: uppercase; color: rgba(255,255,255,0.35); text-align: center;
+    }
+    .s-btn {
+      font-family: var(--font-b); font-size: 0.8rem; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      background: var(--mint); color: var(--black);
+      border: 2.5px solid var(--black);
+      box-shadow: 5px 5px 0 var(--mint), 0 0 20px rgba(182,245,216,0.3);
+      padding: 14px 36px; cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .s-btn:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--mint); }
+    .s-btn:active { transform: translate(3px,3px); box-shadow: 2px 2px 0 var(--mint); }
+    .s-controls {
+      font-family: var(--font-b); font-size: 0.62rem; letter-spacing: 1px;
+      color: rgba(255,255,255,0.25); text-align: center; line-height: 2.2;
+    }
+    .s-controls span {
+      display: inline-block; background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 2px 8px; margin: 0 3px;
+    }
+    #gameOverScore {
+      font-family: var(--font-h); font-size: 3rem; font-weight: 800;
+      letter-spacing: -2px; color: var(--peach);
+      text-shadow: 0 0 20px rgba(255,203,164,0.5);
+    }
+
+    /* ── MOBILE CONTROLS ── */
+    #mobileControls {
+      position: fixed; bottom: 30px; left: 0; right: 0;
+      display: none; justify-content: space-between;
+      padding: 0 30px; z-index: 10; pointer-events: none;
+    }
+    .mob-btn {
+      width: 70px; height: 70px;
+      background: rgba(13,13,13,0.8);
+      border: 2px solid var(--mint); box-shadow: 3px 3px 0 var(--mint);
+      color: var(--mint); font-size: 1.6rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; pointer-events: all;
+      user-select: none; -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── DIFFICULTY BARS ── */
+    .diff-bar-wrap {
+      position: fixed;
+      top: 0; bottom: 0;
+      width: 10px;
+      z-index: 10;
+      pointer-events: none;
+      display: none;
+    }
+    #diffLeft  { left: 0; }
+    #diffRight { right: 0; }
+    .diff-bar-track {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(255,255,255,0.05);
+      height: 100%;
+    }
+    .diff-bar-fill {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 0%;
+      transition: height 0.4s ease, background 0.4s ease;
+    }
+    .diff-bar-label {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%) rotate(-90deg);
+      font-family: var(--font-b);
+      font-size: 0.45rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.3);
+      white-space: nowrap;
+    }
+    #backBtn {
+      position: fixed; top: 16px; left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-b); font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      background: var(--black); color: rgba(255,255,255,0.3);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      padding: 5px 12px; cursor: pointer; z-index: 30;
+      text-decoration: none; transition: color 0.15s, border-color 0.15s;
+    }
+    #backBtn:hover { color: var(--mint); border-color: var(--mint); }
+
+    /* BEST score pill on the start screen */
+    #startBest {
+      font-family: var(--font-h); font-size: 1rem; font-weight: 800;
+      letter-spacing: 1px; color: #FFD700;
+      background: var(--black); border: 2px solid #FFD700;
+      box-shadow: 3px 3px 0 #FFD700, 0 0 14px rgba(255,215,0,0.35);
+      padding: 8px 22px; display: none;
+    }
+    #startBest.show { display: block; animation: fadeIn 0.4s ease both; }
+
+    /* ── SOUND BUTTON ── */
+    #soundBtn {
+      position: fixed; top: 16px; right: 16px; z-index: 30;
+      font-family: var(--font-b); font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      background: var(--black); color: var(--white);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      padding: 5px 12px; cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    #soundBtn:hover { color: var(--mint); border-color: var(--mint); }
+
+    /* ── PAUSE SCREEN (same look as start/game-over screens) ── */
+    #pauseScreen .s-title { font-size: clamp(2rem, 6vw, 4rem); }
+
+    /* NITRO HUD */
+    #nitroHud {
+      position: fixed; bottom: 36px; left: 50%;
+      transform: translateX(-50%);
+      display: none; gap: 10px; align-items: flex-end;
+      z-index: 10; pointer-events: none;
+    }
+    .nitro-charge {
+      width: 18px; height: 44px;
+      border: 2px solid #7DF9FF;
+      border-radius: 6px 6px 3px 3px;
+      background: rgba(125,249,255,0.08);
+      box-shadow: 0 0 8px rgba(125,249,255,0.4);
+      position: relative; overflow: hidden;
+      transition: opacity 0.2s;
+    }
+    .nitro-charge.empty { opacity: 0.2; }
+    .nitro-charge-fill {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 100%;
+      background: linear-gradient(to top, #7DF9FF, rgba(125,249,255,0.4));
+      box-shadow: 0 0 10px #7DF9FF;
+      transition: height 0.1s linear;
+    }
+
+    /* SPEED LINES */
+    .speed-line-wrap {
+      position: fixed; top: 0; bottom: 0; width: 120px;
+      pointer-events: none; z-index: 5; overflow: hidden;
+      display: none;
+    }
+    #slLeft  { left: 0; }
+    #slRight { right: 0; }
+    .speed-line {
+      position: absolute;
+      width: 2px;
+      background: linear-gradient(to bottom, transparent, rgba(182,245,216,0.6), transparent);
+      filter: blur(2px);
+      border-radius: 2px;
+      opacity: 0;
+      transition: opacity 0.1s;
+    }
+
+    /* COUNTDOWN */
+    #countdown {
+      position: fixed; inset: 0;
+      display: none; align-items: center; justify-content: center;
+      z-index: 50; pointer-events: none;
+    }
+    #countdownNum {
+      font-family: var(--font-h); font-size: clamp(6rem, 20vw, 12rem);
+      font-weight: 800; letter-spacing: -4px; color: var(--mint);
+      text-shadow: 0 0 60px rgba(182,245,216,0.6);
+      animation: countPop 0.4s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes countPop {
+      from { transform: scale(2); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    #warningPopup {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 100;
+      background: var(--black);
+      border: 2.5px solid var(--pink);
+      box-shadow: 6px 6px 0 var(--pink), 0 0 40px rgba(255,179,203,0.5);
+      padding: 28px 44px;
+      text-align: center;
+      display: none; flex-direction: column; gap: 10px;
+      pointer-events: none;
+    }
+    #warningPopup.show {
+      display: flex;
+      animation: warnPop 0.3s cubic-bezier(.34,1.56,.64,1) both, warnFlash 0.5s ease 0.3s 4;
+    }
+    @keyframes warnPop {
+      from { transform: translate(-50%,-50%) scale(0.7); opacity:0; }
+      to   { transform: translate(-50%,-50%) scale(1);   opacity:1; }
+    }
+    @keyframes warnFlash {
+      0%,100% { box-shadow: 6px 6px 0 var(--pink),  0 0 40px rgba(255,179,203,0.5); }
+      50%     { box-shadow: 6px 6px 0 var(--peach), 0 0 60px rgba(255,203,164,0.8); }
+    }
+    .warn-icon  { font-size: 2.5rem; }
+    .warn-title {
+      font-family: var(--font-h); font-size: 1.8rem; font-weight: 800;
+      letter-spacing: -1px; color: var(--pink);
+      text-shadow: 0 0 20px rgba(255,179,203,0.6);
+    }
+    .warn-sub {
+      font-family: var(--font-b); font-size: 0.62rem;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+  </style>
+</head>
+<body>
+
+  <a href="index.html" id="backBtn">← PORTFOLIO</a>
+
+  <!-- DIFFICULTY BARS -->
+  <div class="diff-bar-wrap" id="diffLeft">
+    <div class="diff-bar-track">
+      <div class="diff-bar-fill" id="diffFillLeft"></div>
+    </div>
+  </div>
+  <div class="diff-bar-wrap" id="diffRight">
+    <div class="diff-bar-track">
+      <div class="diff-bar-fill" id="diffFillRight"></div>
+    </div>
+  </div>
+
+  <!-- SPEED LINES -->
+  <div class="speed-line-wrap" id="slLeft"></div>
+  <div class="speed-line-wrap" id="slRight"></div>
+
+  <!-- COUNTDOWN -->
+  <div id="countdown"><span id="countdownNum">3</span></div>
+
+  <!-- WARNING POPUP -->
+  <div id="warningPopup">
+    <div class="warn-icon">⚠️</div>
+    <div class="warn-title">DANGER ZONE</div>
+    <div class="warn-sub">Speed increasing beyond limits</div>
+  </div>
+
+  <!-- SOUND TOGGLE -->
+  <button id="soundBtn">🔊 SOUND: ON</button>
+
+  <!-- PAUSE SCREEN -->
+  <div class="screen hidden" id="pauseScreen">
+    <div class="s-title">PAU<em>SED</em></div>
+    <button class="s-btn" id="resumeBtn">▶ RESUME</button>
+    <div class="s-controls">press <span>P</span> or <span>ESC</span> to resume</div>
+  </div>
+
+  <!-- NITRO HUD -->
+  <div id="nitroHud">
+    <div class="nitro-charge" id="nitro0"><div class="nitro-charge-fill" id="nitroFill0"></div></div>
+    <div class="nitro-charge" id="nitro1"><div class="nitro-charge-fill" id="nitroFill1"></div></div>
+    <div class="nitro-charge" id="nitro2"><div class="nitro-charge-fill" id="nitroFill2"></div></div>
+  </div>
+
+  <!-- START -->
+  <div class="screen" id="startScreen">
+    <div class="s-title">NEON<br/><em>RUN</em></div>
+    <div class="s-sub">3D Endless Runner</div>
+    <div id="startBest">🏆 BEST: 0</div>
+    <button class="s-btn" id="startBtn">▶ START GAME</button>      <div class="s-controls">
+        <span>←</span><span>→</span> lanes &nbsp;|&nbsp; <span>SPACE</span> jump<br/>
+        <span>SHIFT</span> nitro &nbsp;|&nbsp; <span>P</span> pause &nbsp;|&nbsp; <span>▼/S</span> brake<br/>
+        mobile: ◀ ▲ ▼ ▶ buttons
+      </div>
+  </div>
+
+  <!-- GAME OVER -->
+  <div class="screen hidden" id="gameOverScreen">
+    <div class="s-title" style="font-size:clamp(2rem,6vw,4rem);">GAME<br/><em>OVER</em></div>
+    <div id="gameOverScore">0</div>
+    <div class="s-sub">Score</div>
+    <div class="s-sub" id="highScoreDisplay" style="color:rgba(255,215,0,0.7);">BEST: 0</div>
+    <button class="s-btn" id="restartBtn">↺ PLAY AGAIN</button>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-box">Score <span id="scoreVal">0</span></div>
+    <div class="hud-box" id="comboBox">Combo <span id="comboVal">x1</span></div>
+    <div class="hud-box" id="speedBox">Speed ×1.0</div>
+  </div>
+
+  <!-- MOBILE -->
+  <div id="mobileControls">
+    <div class="mob-btn" id="mobLeft">◀</div>
+    <div class="mob-btn" id="mobJump">▲</div>
+    <div class="mob-btn" id="mobBrake">▼</div>
+    <div class="mob-btn" id="mobRight">▶</div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // ── RENDERER ─────────────────────────────────────────────
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    window.addEventListener('resize', () => {
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+    });
+
+    // ── SCENE ────────────────────────────────────────────────
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0D0D0D);
+    scene.fog = new THREE.Fog(0x0D0D0D, 30, 80);
+
+    // ── CAMERA ───────────────────────────────────────────────
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
+    camera.position.set(0, 4, 10);
+    camera.lookAt(0, 1, 0);
+
+    // camera state for cinematic lerp
+    const camTarget = { x: 0, y: 4, z: 10 };
+    const camLook   = { x: 0, y: 1,  z: 0  };
+    let   camShakeX = 0, camShakeY = 0;
+
+    // ── LIGHTS ───────────────────────────────────────────────
+    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(5, 10, 5);
+    dirLight.castShadow = true;
+    scene.add(dirLight);
+    const mintLight = new THREE.PointLight(0xB6F5D8, 2, 20);
+    scene.add(mintLight);
+    const pinkLight = new THREE.PointLight(0xFFB3CB, 1.5, 15);
+    scene.add(pinkLight);
+
+    // ── TRACK ────────────────────────────────────────────────
+    const TRACK_W    = 6;
+    const TILE_LEN   = 10;
+    const TILE_COUNT = 12;
+
+    const tiles = [];
+    for (let i = 0; i < TILE_COUNT; i++) {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(TRACK_W, 0.3, TILE_LEN),
+        new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8, metalness: 0.2 })
+      );
+      mesh.position.set(0, -0.15, -i * TILE_LEN);
+      mesh.receiveShadow = true;
+      scene.add(mesh);
+      tiles.push(mesh);
+    }
+
+    // edge lines
+    [-TRACK_W/2, TRACK_W/2].forEach(x => {
+      const pts = [];
+      for (let z = 0; z > -TILE_COUNT * TILE_LEN; z -= 2)
+        pts.push(new THREE.Vector3(x, 0.02, z));
+      scene.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(pts),
+        new THREE.LineBasicMaterial({ color: 0xB6F5D8 })
+      ));
+    });
+
+    // lane dashes
+    const dashGroup = new THREE.Group();
+    for (let z = 0; z > -TILE_COUNT * TILE_LEN; z -= 4) {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(0.08, 0.02, 1.5),
+        new THREE.MeshBasicMaterial({ color: 0x333333 })
+      );
+      mesh.position.set(0, 0.01, z);
+      dashGroup.add(mesh);
+    }
+    scene.add(dashGroup);
+
+    // ── SIDE CUBES ─────────────────────────────────────────────
+    const SIDE_COLORS = [0xB6F5D8, 0xFFB3CB, 0xFFCBA4, 0xCABFFF, 0xFFF4A1];
+    const sideCubes   = [];
+
+    function makeSideCube(z) {
+      const side  = Math.random() < 0.5 ? -1 : 1;
+      const x     = side * (4.5 + Math.random() * 3);
+      const size  = 0.3 + Math.random() * 0.5;
+      const col   = SIDE_COLORS[Math.floor(Math.random() * SIDE_COLORS.length)];
+      const mesh  = new THREE.Mesh(
+        new THREE.BoxGeometry(size, size, size),
+        new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 0.4, roughness: 0.3, metalness: 0.4 })
+      );
+      mesh.position.set(x, 0.8 + Math.random() * 1.5, z);
+      mesh.userData.floatOffset = Math.random() * Math.PI * 2;
+      mesh.userData.floatSpeed  = 0.02 + Math.random() * 0.02;
+      mesh.userData.baseY       = mesh.position.y;
+      mesh.rotation.set(Math.random(), Math.random(), Math.random());
+      scene.add(mesh);
+      sideCubes.push(mesh);
+    }
+
+    for (let z = -10; z > -120; z -= 14) makeSideCube(z);
+
+    // ── COINS ─────────────────────────────────────────────────
+    const coins = [];
+
+    function spawnCoin() {
+      const lane = Math.floor(Math.random() * 3);
+      const mesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.35, 0.35, 0.08, 24),
+        new THREE.MeshStandardMaterial({ color: 0xFFD700, emissive: 0xFFD700, emissiveIntensity: 0.6, roughness: 0.2, metalness: 0.8 })
+      );
+      mesh.position.set(LANES[lane], 0.6, -65);
+      mesh.rotation.x = Math.PI / 2;
+      scene.add(mesh);
+      coins.push(mesh);
+    }
+
+    // ── SHIELD ────────────────────────────────────────────
+    let shieldActive  = false;
+    let shieldMesh    = null;
+    let shieldSpawnAt = 900;
+    const shields     = [];
+
+    function spawnShield() {
+      const lane = Math.floor(Math.random() * 3);
+      const mesh = new THREE.Mesh(
+        new THREE.TorusGeometry(0.7, 0.08, 12, 40),
+        new THREE.MeshStandardMaterial({ color: 0x7DF9FF, emissive: 0x7DF9FF, emissiveIntensity: 0.8, roughness: 0.2 })
+      );
+      mesh.position.set(LANES[lane], 0.6, -65);
+      scene.add(mesh);
+      shields.push(mesh);
+    }
+
+    let shieldRing = null;
+    function attachShieldRing() {
+      shieldRing = new THREE.Mesh(
+        new THREE.TorusGeometry(1.1, 0.06, 12, 40),
+        new THREE.MeshStandardMaterial({ color: 0x7DF9FF, emissive: 0x7DF9FF, emissiveIntensity: 1.0, transparent: true, opacity: 0.85 })
+      );
+      scene.add(shieldRing);
+    }
+    function removeShieldRing() {
+      if (shieldRing) { scene.remove(shieldRing); shieldRing = null; }
+    }
+
+    // ── NITRO TRAIL ───────────────────────────────────────
+    const trailParticles = [];
+    function spawnTrailParticle() {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(0.08, 0.08, 0.08),
+        new THREE.MeshBasicMaterial({ color: 0x7DF9FF, transparent: true, opacity: 0.9 })
+      );
+      mesh.position.set(
+        car.position.x + (Math.random()-0.5)*0.3,
+        car.position.y + 0.1,
+        car.position.z + 1.2
+      );
+      mesh.userData.life = 20 + Math.floor(Math.random()*15);
+      mesh.userData.maxLife = mesh.userData.life;
+      scene.add(mesh);
+      trailParticles.push(mesh);
+    }
+
+    // ── SOUND ─────────────────────────────────────────────
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // sound on/off — the game remembers your choice (stored in the browser)
+    let soundOn = localStorage.getItem('neonRunSound') !== 'off';
+    const soundBtn = document.getElementById('soundBtn');
+    function updateSoundBtn() {
+      soundBtn.textContent = soundOn ? '🔊 SOUND: ON' : '🔇 SOUND: OFF';
+    }
+    updateSoundBtn();
+    soundBtn.addEventListener('click', () => {
+      soundOn = !soundOn;
+      localStorage.setItem('neonRunSound', soundOn ? 'on' : 'off');
+      if (!soundOn) stopEngine();
+      else if (running && !paused) startEngine();
+      updateSoundBtn();
+    });
+
+    function playSound(type) {
+      if (!soundOn) return; // sounds are off, skip
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const g = audioCtx.createGain();
+      g.connect(audioCtx.destination);
+      if (type === 'coin') {
+        const o = audioCtx.createOscillator();
+        o.connect(g); o.type = 'sine';
+        o.frequency.setValueAtTime(880, audioCtx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.1);
+        g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+        o.start(); o.stop(audioCtx.currentTime + 0.2);
+      } else if (type === 'nitro') {
+        const o = audioCtx.createOscillator();
+        const lfo = audioCtx.createOscillator();
+        const lfoGain = audioCtx.createGain();
+        lfo.frequency.value = 8; lfoGain.gain.value = 40;
+        lfo.connect(lfoGain); lfoGain.connect(o.frequency);
+        o.connect(g); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(120, audioCtx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.3);
+        g.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        lfo.start(); o.start(); o.stop(audioCtx.currentTime + 0.5); lfo.stop(audioCtx.currentTime + 0.5);
+      } else if (type === 'crash') {
+        const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.6, audioCtx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/data.length, 1.5);
+        const src = audioCtx.createBufferSource();
+        src.buffer = buf;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass'; filter.frequency.value = 400;
+        src.connect(filter); filter.connect(g);
+        g.gain.setValueAtTime(1.2, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+        src.start();
+      }
+    }
+
+    // engine hum
+    let engineOsc, engineGain;
+    function startEngine() {
+      if (!soundOn || engineOsc) return; // no engine sound when muted / already running
+      engineOsc  = audioCtx.createOscillator();
+      engineGain = audioCtx.createGain();
+      engineOsc.type = 'sawtooth';
+      engineOsc.frequency.value = 60;
+      engineGain.gain.value = 0.04;
+      engineOsc.connect(engineGain);
+      engineGain.connect(audioCtx.destination);
+      engineOsc.start();
+    }
+    function stopEngine() {
+      if (engineOsc) { engineOsc.stop(); engineOsc = null; }
+    }
+    function updateEngine(spd) {
+      if (!engineOsc) return;
+      engineOsc.frequency.setTargetAtTime(60 + spd * 180, audioCtx.currentTime, 0.1);
+      engineGain.gain.setTargetAtTime(0.04 + spd * 0.04, audioCtx.currentTime, 0.1);
+    }
+
+    // ── SPEED LINES ───────────────────────────────────────
+    const slLeft  = document.getElementById('slLeft');
+    const slRight = document.getElementById('slRight');
+    const SL_COUNT = 10;
+    function buildSpeedLines(wrap) {
+      for (let i = 0; i < SL_COUNT; i++) {
+        const el = document.createElement('div');
+        el.className = 'speed-line';
+        el.style.left   = (Math.random() * 100) + '%';
+        el.style.top    = (Math.random() * 80 + 10) + '%';
+        el.style.height = (40 + Math.random() * 120) + 'px';
+        wrap.appendChild(el);
+      }
+    }
+    buildSpeedLines(slLeft);
+    buildSpeedLines(slRight);
+
+    function updateSpeedLines(spd) {
+      const pct = Math.max(0, (spd - 0.35) / (0.80 - 0.35));
+      [slLeft, slRight].forEach(wrap => {
+        wrap.querySelectorAll('.speed-line').forEach(el => {
+          el.style.opacity = (pct * (0.3 + Math.random() * 0.5)).toFixed(2);
+          el.style.height  = (40 + pct * 140 + Math.random() * 40) + 'px';
+        });
+      });
+    }
+
+    // ── CAR ──────────────────────────────────────────────────
+    const LANES   = [-2, 0, 2];
+    const GROUND_Y = 0.22;
+    let laneIdx   = 1;
+    let targetX   = LANES[laneIdx];
+
+    const car = new THREE.Group();
+
+    // body
+    car.add(Object.assign(
+      new THREE.Mesh(new THREE.BoxGeometry(1, 0.4, 2),
+        new THREE.MeshStandardMaterial({ color: 0xB6F5D8, roughness: 0.3, metalness: 0.6 })),
+      { castShadow: true }
+    ));
+
+    // cabin
+    const cabin = new THREE.Mesh(
+      new THREE.BoxGeometry(0.7, 0.35, 1),
+      new THREE.MeshStandardMaterial({ color: 0x0D0D0D, roughness: 0.2, metalness: 0.8 })
+    );
+    cabin.position.set(0, 0.37, -0.1);
+    car.add(cabin);
+
+    // wheels
+    [[-0.55,-0.18,0.65],[0.55,-0.18,0.65],[-0.55,-0.18,-0.65],[0.55,-0.18,-0.65]].forEach(([x,y,z]) => {
+      const w = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.2, 0.2, 0.15, 12),
+        new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 })
+      );
+      w.rotation.z = Math.PI / 2;
+      w.position.set(x, y, z);
+      car.add(w);
+    });
+
+    // headlights
+    [[-0.3,0,-1.01],[0.3,0,-1.01]].forEach(([x,y,z]) => {
+      const hl = new THREE.Mesh(
+        new THREE.BoxGeometry(0.2, 0.1, 0.05),
+        new THREE.MeshBasicMaterial({ color: 0xFFF4A1 })
+      );
+      hl.position.set(x, y, z);
+      car.add(hl);
+    });
+
+    car.position.set(LANES[laneIdx], GROUND_Y, 2);
+    scene.add(car);
+
+    // ── PARTICLES ─────────────────────────────────────────
+    const particles = [];
+
+    function spawnExplosion(x, y, z, color) {
+      for (let i = 0; i < 30; i++) {
+        const size = 0.1 + Math.random() * 0.25;
+        const mesh = new THREE.Mesh(
+          new THREE.BoxGeometry(size, size, size),
+          new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.8, roughness: 0.3 })
+        );
+        mesh.position.set(x, y, z);
+        const speed = 0.08 + Math.random() * 0.18;
+        const theta = Math.random() * Math.PI * 2;
+        const phi   = Math.random() * Math.PI;
+        mesh.userData.vx = Math.sin(phi) * Math.cos(theta) * speed;
+        mesh.userData.vy = Math.sin(phi) * Math.sin(theta) * speed + 0.05;
+        mesh.userData.vz = Math.cos(phi) * speed;
+        mesh.userData.life = 60;
+        scene.add(mesh);
+        particles.push(mesh);
+      }
+    }
+
+    // ── OBSTACLES ────────────────────────────────────────────
+    const OBS_COLORS = [0xFFB3CB, 0xCABFFF, 0xFFCBA4, 0xFFF4A1];
+    const obstacles  = [];
+
+    function spawnObstacle() {
+      const lane = Math.floor(Math.random() * 3);
+      const h    = 0.5 + Math.random() * 0.8;
+      const col  = OBS_COLORS[Math.floor(Math.random() * OBS_COLORS.length)];
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(1.2, h, 1.2),
+        new THREE.MeshStandardMaterial({ color: col, roughness: 0.4, metalness: 0.3, emissive: col, emissiveIntensity: 0.3 })
+      );
+      mesh.castShadow = true;
+      mesh.position.set(LANES[lane], h / 2, -60);
+      mesh.userData.h = h;
+      scene.add(mesh);
+      obstacles.push(mesh);
+    }
+
+    // ── GAME STATE ───────────────────────────────────────────────────
+    let running      = false;
+    let paused       = false;
+    let score        = 0;
+    let speed        = 0.18;
+    let spawnTimer   = 0;
+    let jumpVel      = 0;
+    let isJumping    = false;
+    let frame        = 0;
+
+    const JUMP_FORCE = 0.18;
+    const GRAVITY    = -0.012;
+
+    // nitro + brake
+    let nitroCharges  = 3;
+    let nitroActive   = false;
+    let nitroTimer    = 0;
+    const NITRO_DURATION = 120; // 2s at 60fps
+    const NITRO_BOOST    = 0.25;
+    let braking = false;
+
+    // coins + combo
+    let coinTimer  = 0;
+    let coinStreak = 0;
+    let comboMult  = 1;
+    let driveScore = 0; // used for speed calc only
+
+    // crash
+    let crashed    = false;
+    let crashTimer = 0;
+
+    // ── INPUT ────────────────────────────────────────────────
+    const keys = {};
+    document.addEventListener('keydown', e => {
+      // P / Escape = pause or resume (works any time the game is running)
+      if ((e.code === 'KeyP' || e.code === 'Escape') && running && !crashed) {
+        if (paused) resumeGame();
+        else pauseGame();
+        return;
+      }
+      if (!running || paused || keys[e.code]) return;
+      keys[e.code] = true;
+      if ((e.code === 'ArrowLeft'  || e.code === 'KeyA') && laneIdx > 0) { laneIdx--; targetX = LANES[laneIdx]; }
+      if ((e.code === 'ArrowRight' || e.code === 'KeyD') && laneIdx < 2) { laneIdx++; targetX = LANES[laneIdx]; }
+      if (e.code === 'Space' && !isJumping) { jumpVel = JUMP_FORCE; isJumping = true; e.preventDefault(); }
+      if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && nitroCharges > 0 && !nitroActive) {
+        nitroActive = true; nitroTimer = NITRO_DURATION; nitroCharges--;
+        camShakeX = (Math.random()-0.5)*0.6; camShakeY = (Math.random()-0.5)*0.4;
+        playSound('nitro');
+        e.preventDefault();
+      }
+      if (e.code === 'KeyS' || e.code === 'ArrowDown') { braking = true; camShakeX = (Math.random()-0.5)*0.3; camShakeY = (Math.random()-0.5)*0.2; }
+    });
+    document.addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'KeyS' || e.code === 'ArrowDown') braking = false; });
+
+    document.getElementById('mobLeft').addEventListener('touchstart',  e => { e.preventDefault(); if (running && laneIdx > 0) { laneIdx--; targetX = LANES[laneIdx]; } }, { passive: false });
+    document.getElementById('mobRight').addEventListener('touchstart', e => { e.preventDefault(); if (running && laneIdx < 2) { laneIdx++; targetX = LANES[laneIdx]; } }, { passive: false });
+    document.getElementById('mobJump').addEventListener('touchstart',  e => { e.preventDefault(); if (running && !isJumping) { jumpVel = JUMP_FORCE; isJumping = true; } }, { passive: false });
+    document.getElementById('mobBrake').addEventListener('touchstart', e => { e.preventDefault(); if (running) { braking = true; } }, { passive: false });
+    document.getElementById('mobBrake').addEventListener('touchend',   e => { e.preventDefault(); braking = false; }, { passive: false });
+
+    // ── UI ───────────────────────────────────────────────────
+    const startScreen   = document.getElementById('startScreen');
+    const gameOverScreen= document.getElementById('gameOverScreen');
+    const hud           = document.getElementById('hud');
+    const mobControls   = document.getElementById('mobileControls');
+    const scoreVal      = document.getElementById('scoreVal');
+    const speedBox      = document.getElementById('speedBox');
+    const gameOverScore = document.getElementById('gameOverScore');
+    const diffLeft      = document.getElementById('diffLeft');
+    const diffRight     = document.getElementById('diffRight');
+    const diffFillL     = document.getElementById('diffFillLeft');
+    const diffFillR     = document.getElementById('diffFillRight');
+    const warningPopup     = document.getElementById('warningPopup');
+    const comboBox         = document.getElementById('comboBox');
+    const comboVal         = document.getElementById('comboVal');
+    const nitroHud         = document.getElementById('nitroHud');
+    const nitroEls         = [0,1,2].map(i => document.getElementById('nitro'+i));
+    const nitroFills       = [0,1,2].map(i => document.getElementById('nitroFill'+i));
+    const countdownEl      = document.getElementById('countdown');
+    const countdownNum     = document.getElementById('countdownNum');
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+    let   highScore        = parseInt(localStorage.getItem('neonRunHS') || '0');
+
+    // show BEST on the start screen too (replay motivation!)
+    const startBest = document.getElementById('startBest');
+    if (highScore > 0) {
+      startBest.textContent = '🏆 BEST: ' + highScore;
+      startBest.classList.add('show');
+    }
+    let   warnShown        = false;
+    let   spawnFrozen      = false;
+    let   preWarnTimer     = 0;
+
+    function runCountdown(cb) {
+      const steps = ['3','2','1','GO!'];
+      let i = 0;
+      countdownEl.style.display = 'flex';
+      function tick() {
+        countdownNum.textContent = steps[i];
+        countdownNum.style.animation = 'none';
+        void countdownNum.offsetWidth;
+        countdownNum.style.animation = 'countPop 0.4s cubic-bezier(.34,1.56,.64,1) both';
+        countdownNum.style.color = i < 3 ? 'var(--mint)' : 'var(--peach)';
+        i++;
+        if (i < steps.length) setTimeout(tick, 800);
+        else setTimeout(() => { countdownEl.style.display = 'none'; cb(); }, 600);
+      }
+      tick();
+    }
+
+    function resetState() {
+      score = 0; speed = 0.18; spawnTimer = 0;
+      paused = false;
+      laneIdx = 1; targetX = LANES[laneIdx];
+      jumpVel = 0; isJumping = false; frame = 0;
+      warnShown = false; spawnFrozen = false; preWarnTimer = 0;
+      nitroCharges = 3; nitroActive = false; nitroTimer = 0; braking = false;
+      coinTimer = 0; coinStreak = 0; comboMult = 1; driveScore = 0;
+      crashed = false; crashTimer = 0;
+      shieldActive = false; shieldSpawnAt = 900;
+      shields.forEach(s => scene.remove(s)); shields.length = 0;
+      trailParticles.forEach(p => scene.remove(p)); trailParticles.length = 0;
+      removeShieldRing();
+      particles.forEach(p => scene.remove(p)); particles.length = 0;
+      coins.forEach(c => scene.remove(c)); coins.length = 0;
+      obstacles.forEach(o => scene.remove(o)); obstacles.length = 0;
+      comboBox.style.display = 'none';
+      warningPopup.classList.remove('show');
+      car.position.set(LANES[laneIdx], GROUND_Y, 2);
+      car.rotation.set(0, 0, 0);
+      tiles.forEach((t, i) => t.position.z = -i * TILE_LEN);
+      dashGroup.position.z = 0;
+    }
+
+    function startGame() {
+      resetState();
+      startScreen.classList.add('hidden');
+      gameOverScreen.classList.add('hidden');
+      hud.style.display = 'flex';
+      mobControls.style.display = 'flex';
+      diffLeft.style.display  = 'block';
+      diffRight.style.display = 'block';
+      nitroHud.style.display  = 'flex';
+      slLeft.style.display  = 'block';
+      slRight.style.display = 'block';
+      runCountdown(() => { if (audioCtx.state === 'suspended') audioCtx.resume(); startEngine(); running = true; });
+    }
+
+    function endGame() {
+      running = false;
+      const finalScore = Math.floor(score);
+      if (finalScore > highScore) {
+        highScore = finalScore;
+        localStorage.setItem('neonRunHS', highScore);
+      }
+      hud.style.display = 'none';
+      mobControls.style.display = 'none';
+      diffLeft.style.display  = 'none';
+      diffRight.style.display = 'none';
+      nitroHud.style.display  = 'none';
+      slLeft.style.display  = 'none';
+      slRight.style.display = 'none';
+      stopEngine();
+      gameOverScore.textContent    = finalScore;
+      highScoreDisplay.textContent = 'BEST: ' + highScore;
+      gameOverScreen.classList.remove('hidden');
+    }
+
+    document.getElementById('startBtn').addEventListener('click',   startGame);
+    document.getElementById('restartBtn').addEventListener('click', startGame);
+
+    // ── PAUSE / RESUME ──────────────────────────────────────
+    const pauseScreen = document.getElementById('pauseScreen');
+    function pauseGame() {
+      paused = true;
+      stopEngine();          // silence the engine hum
+      pauseScreen.classList.remove('hidden');
+    }
+    function resumeGame() {
+      paused = false;
+      keys.ArrowLeft  = false;  // release any "stuck" keys held while paused
+      keys.ArrowRight = false;
+      keys.Space      = false;
+      keys.ShiftLeft  = false;
+      keys.KeyS       = false;
+      if (soundOn) startEngine();
+      pauseScreen.classList.add('hidden');
+    }
+    document.getElementById('resumeBtn').addEventListener('click', resumeGame);
+    // tapping the pause screen background also resumes (handy on phones)
+    pauseScreen.addEventListener('click', e => { if (e.target === pauseScreen) resumeGame(); });
+
+    // ── COLLISION ────────────────────────────────────────────
+    function checkCollision() {
+      for (const obs of obstacles) {
+        const dx = Math.abs(car.position.x - obs.position.x);
+        const dz = Math.abs(car.position.z - obs.position.z);
+        const dy = car.position.y - obs.userData.h / 2;
+        if (dx < 0.9 && dz < 1.4 && dy < obs.userData.h * 0.8) return obs.material.color.getHex();
+      }
+      return null;
+    }
+
+    // ── LOOP ─────────────────────────────────────────────────
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (running && !paused) {
+        frame++;
+        score += speed * 2;
+        driveScore += speed * 2;
+        const tier = Math.floor(driveScore / 250);
+        if (driveScore < 2500) {
+          speed = Math.min(0.55, 0.18 + tier * 0.05);
+        } else {
+          speed = Math.min(0.80, 0.55 + Math.floor((driveScore - 2500) / 250) * 0.20);
+          if (!warnShown) {
+            warnShown = true;
+            warningPopup.classList.remove('show');
+            void warningPopup.offsetWidth;
+            warningPopup.classList.add('show');
+            obstacles.forEach(o => scene.remove(o));
+            obstacles.length = 0;
+            spawnFrozen = true;
+            setTimeout(() => {
+              warningPopup.classList.remove('show');
+              spawnFrozen = false;
+            }, 3000);
+          }
+        }
+
+        if (frame % 6 === 0) {
+          scoreVal.textContent = Math.floor(score);
+          speedBox.textContent = 'Speed ×' + speed.toFixed(1);
+
+          // difficulty bar — 0..1 mapped to speed range 0.18..0.55
+          const pct   = Math.round(((speed - 0.18) / (0.55 - 0.18)) * 100);
+          const color = pct < 40 ? '#B6F5D8' : pct < 70 ? '#FFF4A1' : pct < 90 ? '#FFCBA4' : '#FFB3CB';
+          const glow  = pct < 40 ? 'rgba(182,245,216,0.6)' : pct < 70 ? 'rgba(255,244,161,0.6)' : pct < 90 ? 'rgba(255,203,164,0.6)' : 'rgba(255,179,203,0.8)';
+          const fill  = `linear-gradient(to top, ${color}, ${glow})`;
+          diffFillL.style.height     = pct + '%';
+          diffFillR.style.height     = pct + '%';
+          diffFillL.style.background = fill;
+          diffFillR.style.background = fill;
+          diffFillL.style.boxShadow  = `0 0 8px ${color}`;
+          diffFillR.style.boxShadow  = `0 0 8px ${color}`;
+        }
+
+        // 2 sec before warning — clear obstacles early
+        if (!warnShown && driveScore >= 2380 && driveScore < 2500) {
+          obstacles.forEach(o => scene.remove(o));
+          obstacles.length = 0;
+          spawnFrozen = true;
+        }
+        if (!warnShown && driveScore < 2380) spawnFrozen = false;
+
+        // spawn obstacles
+        spawnTimer++;
+        if (!spawnFrozen && spawnTimer >= Math.max(80, 140 - score * 0.05)) {
+          spawnObstacle(); spawnTimer = 0; coinTimer = 0;
+        }
+
+        // nitro + brake
+        let effectiveSpeed = speed;
+        if (nitroActive) {
+          nitroTimer--;
+          effectiveSpeed = Math.min(0.80, speed + NITRO_BOOST);
+          camShakeX += (Math.random()-0.5)*0.15;
+          camShakeY += (Math.random()-0.5)*0.1;
+          if (nitroTimer <= 0) nitroActive = false;
+        }
+        if (braking) effectiveSpeed = speed * 0.3;
+
+        // update nitro cylinders
+        nitroEls.forEach((el, i) => {
+          if (i < nitroCharges) {
+            el.classList.remove('empty');
+            nitroFills[i].style.height = (nitroActive && i === nitroCharges) ? (nitroTimer / NITRO_DURATION * 100) + '%' : '100%';
+          } else {
+            el.classList.add('empty');
+            nitroFills[i].style.height = (nitroActive && i === nitroCharges) ? (nitroTimer / NITRO_DURATION * 100) + '%' : '0%';
+          }
+        });
+
+        // spawn coins — skip if obstacle is in spawn zone
+        coinTimer++;
+        if (coinTimer >= 180) {
+          coinTimer = 0;
+          const blocked = obstacles.some(o => o.position.z < -45 && o.position.z > -85);
+          if (!blocked) spawnCoin();
+        }
+
+        // spawn shield
+        if (driveScore >= shieldSpawnAt && shields.length === 0 && !shieldActive) {
+          spawnShield();
+          shieldSpawnAt += 900 + Math.random() * 400;
+        }
+
+        // scroll + collect shields
+        for (let i = shields.length - 1; i >= 0; i--) {
+          shields[i].position.z += effectiveSpeed;
+          shields[i].rotation.x += 0.04;
+          shields[i].rotation.y += 0.03;
+          const sdx = Math.abs(car.position.x - shields[i].position.x);
+          const sdz = Math.abs(car.position.z - shields[i].position.z);
+          if (sdx < 0.9 && sdz < 1.2) {
+            scene.remove(shields[i]); shields.splice(i, 1);
+            shieldActive = true;
+            attachShieldRing();
+          } else if (shields[i].position.z > 8) {
+            scene.remove(shields[i]); shields.splice(i, 1);
+          }
+        }
+
+        // shield ring follow car
+        if (shieldRing) {
+          shieldRing.position.set(car.position.x, car.position.y + 0.3, car.position.z);
+          shieldRing.rotation.x += 0.04;
+          shieldRing.rotation.z += 0.02;
+        }
+
+        // nitro trail
+        if (nitroActive && frame % 2 === 0) spawnTrailParticle();
+        for (let i = trailParticles.length - 1; i >= 0; i--) {
+          const tp = trailParticles[i];
+          tp.position.z += effectiveSpeed * 0.5;
+          tp.userData.life--;
+          tp.material.opacity = tp.userData.life / tp.userData.maxLife;
+          if (tp.userData.life <= 0) { scene.remove(tp); trailParticles.splice(i, 1); }
+        }
+
+        // engine pitch
+        if (frame % 6 === 0) updateEngine(speed / 0.80);
+
+        // speed lines
+        if (frame % 4 === 0) updateSpeedLines(effectiveSpeed);
+
+        // scroll + collect coins
+        for (let i = coins.length - 1; i >= 0; i--) {
+          coins[i].position.z += effectiveSpeed;
+          coins[i].rotation.y += 0.06;
+          const cdx = Math.abs(car.position.x - coins[i].position.x);
+          const cdz = Math.abs(car.position.z - coins[i].position.z);
+          if (cdx < 0.8 && cdz < 1.0) {
+            scene.remove(coins[i]); coins.splice(i, 1);
+            coinStreak++;
+            if (coinStreak >= 5) comboMult = 1 + Math.floor(coinStreak / 5);
+            score += 50 * comboMult;
+            comboBox.style.display = 'block';
+            comboVal.textContent   = 'x' + comboMult;
+            playSound('coin');
+          } else if (coins[i].position.z > 8) {
+            scene.remove(coins[i]); coins.splice(i, 1);
+            coinStreak = 0; comboMult = 1;
+            comboBox.style.display = 'none';
+          }
+        }
+
+        // scroll track
+        tiles.forEach(t => { t.position.z += effectiveSpeed; if (t.position.z > 15) t.position.z -= TILE_COUNT * TILE_LEN; });
+        dashGroup.position.z += effectiveSpeed;
+        if (dashGroup.position.z > 4) dashGroup.position.z -= 4;
+
+        // scroll side cubes
+        for (const cube of sideCubes) {
+          cube.position.z += effectiveSpeed;
+          cube.position.y = cube.userData.baseY + Math.sin(frame * cube.userData.floatSpeed + cube.userData.floatOffset) * 0.3;
+          cube.rotation.x += 0.008;
+          cube.rotation.y += 0.006;
+          if (cube.position.z > 15) cube.position.z -= 130;
+        }
+
+        // scroll obstacles
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          obstacles[i].position.z += effectiveSpeed;
+          if (obstacles[i].position.z > 15) { scene.remove(obstacles[i]); obstacles.splice(i, 1); }
+        }
+
+        // lane lerp
+        car.position.x += (targetX - car.position.x) * 0.18;
+
+        // jump
+        if (isJumping) {
+          car.position.y += jumpVel;
+          jumpVel += GRAVITY;
+          if (car.position.y <= GROUND_Y) { car.position.y = GROUND_Y; isJumping = false; jumpVel = 0; }
+        }
+
+        // car tilt (body roll on lane change)
+        const laneForce = targetX - car.position.x;
+        car.rotation.z  += (-laneForce * 0.12 - car.rotation.z) * 0.15;
+        car.rotation.x  += (isJumping ? -0.08 : 0 - car.rotation.x) * 0.12; // nose dip on jump
+
+        // lights follow car
+        mintLight.position.set(car.position.x, 3, car.position.z - 2);
+        pinkLight.position.set(car.position.x - 3, 2, car.position.z - 5);
+
+        // ── CINEMATIC CAMERA ──
+        // camera drifts sideways with car, sits low and close
+        const speedFactor  = speed / 0.55; // 0..1
+        const targetCamX   = car.position.x * 0.4;          // follow x lightly
+        const targetCamY   = 3.2 - speedFactor * 0.6;       // lower at high speed
+        const targetCamZ   = car.position.z + 8.5 - speedFactor * 1.5; // closer at speed
+        const targetLookX  = car.position.x * 0.6;
+        const targetLookY  = 0.8;
+        const targetLookZ  = car.position.z - 10;
+
+        // bank camera on lane change
+        const bankAngle = -laneForce * 0.018;
+        camera.rotation.z += (bankAngle - camera.rotation.z) * 0.08;
+
+        // smooth lerp camera position
+        camTarget.x += (targetCamX - camTarget.x) * 0.06;
+        camTarget.y += (targetCamY - camTarget.y) * 0.04;
+        camTarget.z += (targetCamZ - camTarget.z) * 0.06;
+        camLook.x   += (targetLookX - camLook.x)  * 0.08;
+        camLook.y   += (targetLookY - camLook.y)  * 0.06;
+        camLook.z   += (targetLookZ - camLook.z)  * 0.08;
+
+        camera.position.set(camTarget.x + camShakeX, camTarget.y + camShakeY, camTarget.z);
+        camera.lookAt(camLook.x, camLook.y, camLook.z);
+
+        // ── FOG + FOV (tunnel vision + fisheye) ──
+        const sf = speed / 0.80;
+        scene.fog.near = 30 - sf * 18;
+        scene.fog.far  = 80 - sf * 35;
+        camera.fov     = 60  + sf * 20;
+        camera.updateProjectionMatrix();
+
+        // decay shake
+        camShakeX *= 0.85;
+        camShakeY *= 0.85;
+
+        // tick particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.position.x += p.userData.vx;
+          p.position.y += p.userData.vy;
+          p.position.z += p.userData.vz;
+          p.userData.vy -= 0.004;
+          p.userData.life--;
+          p.material.opacity = p.userData.life / 60;
+          p.material.transparent = true;
+          if (p.userData.life <= 0) { scene.remove(p); particles.splice(i, 1); }
+        }
+
+        // crash detection
+        if (!crashed) {
+          const hitColor = checkCollision();
+          if (hitColor !== null) {
+            if (shieldActive) {
+              shieldActive = false;
+              removeShieldRing();
+              obstacles.forEach(o => scene.remove(o)); obstacles.length = 0;
+              camShakeX = (Math.random()-0.5)*0.5; camShakeY = (Math.random()-0.5)*0.3;
+            } else {
+              crashed = true; crashTimer = 60;
+              coinStreak = 0; comboMult = 1; comboBox.style.display = 'none';
+              spawnExplosion(car.position.x, car.position.y + 0.3, car.position.z, hitColor);
+              camShakeX = (Math.random()-0.5) * 1.2;
+              camShakeY = (Math.random()-0.5) * 0.8;
+              playSound('crash');
+            }
+          }
+        }
+        if (crashed) {
+          crashTimer--;
+          camShakeX = (Math.random()-0.5) * (crashTimer / 60) * 1.0;
+          camShakeY = (Math.random()-0.5) * (crashTimer / 60) * 0.7;
+          if (crashTimer <= 0) endGame();
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
+

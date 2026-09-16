@@ -1,0 +1,23 @@
+════════════════════════════════════════════════════════════
+ SETUP NOTES  (open this file in Notepad — it is NOT part of
+ your website, browsers never load it)
+════════════════════════════════════════════════════════════
+
+1) CONTACT FORM — Status: CONNECTED ✓
+   Formspree endpoint set to: https://formspree.io/f/myezyyqg
+   Messages sent via the contact form will now deliver straight to your Formspree account/email.
+
+2) VISITOR ANALYTICS (2 minutes, free, no cookies)
+   a. Go to dash.cloudflare.com  →  sign up free  →  Web Analytics  →  add site
+   b. Cloudflare gives you a <script> tag with a token in it
+   c. Paste that tag in index.html right before the closing </body> tag
+   You will then see live visitor counts in your Cloudflare dashboard.
+
+3) STILL TO DO (your real details)
+   - Search "yash@example.com" in index.html  →  replace with your real
+     email (it appears in the contact links and in the copy-email button)
+   - Search "github.com/yashdhekale"  →  your real GitHub username
+   - Add resume.pdf into this same folder (the Resume button needs it)
+   - Replace the 2 sample testimonial quotes with real ones
+   - Add certificate links in the certificates list (fill  url: ""  )
+════════════════════════════════════════════════════════════
