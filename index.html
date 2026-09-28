@@ -11,7 +11,14 @@
   <meta property="og:description"
     content="B.Tech CSE (AI/ML) student building intelligent systems. Projects, certificates & a hidden 3D game." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="collage1.jpeg" />
+  <meta property="og:url" content="https://yash662007.github.io/Portfolio/" />
+  <meta property="og:image" content="https://yash662007.github.io/Portfolio/collage1.jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Yash Dhekale — Portfolio" />
+  <meta name="twitter:description" content="B.Tech CSE (AI/ML) student building intelligent systems. Projects, certificates & a hidden 3D game." />
+  <meta name="twitter:image" content="https://yash662007.github.io/Portfolio/collage1.jpeg" />
   <meta name="theme-color" content="#0D0D0D" />
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230D0D0D'/><text x='50' y='74' font-size='56' text-anchor='middle' fill='%23B6F5D8' font-family='sans-serif' font-weight='bold'>YD</text></svg>" />
@@ -2223,7 +2230,7 @@
         desc: "Designed and built this neo-brutalist portfolio from scratch using vanilla HTML, CSS and JavaScript with Three.js for the hidden 3D game.",
         fullDesc: "Crafted a custom neo-brutalist personal portfolio website featuring responsive CSS layouts, custom interactive cursor, dynamic project category filtering, certificate/document modal viewers, Formspree AJAX contact form, and an easter-egg 3D game.",
         tags: ["HTML", "CSS", "JavaScript", "Three.js"],
-        live: "#", code: "https://github.com/Yash662007",
+        live: "https://yash662007.github.io/Portfolio/", code: "https://github.com/Yash662007/Portfolio",
         accent: "#FFCBA4"
       },
       {
@@ -2259,6 +2266,7 @@
               <div class="proj-desc">${p.desc}</div>
               <div class="proj-tags">${p.tags.map(t => `<span class="proj-tag">${t}</span>`).join('')}</div>
               <div class="proj-links">
+                ${p.live && p.live !== '#' ? `<a href="${p.live}" target="_blank" class="proj-link live" onclick="event.stopPropagation();">▶ Live Demo</a>` : ''}
                 <a href="${p.code}" target="_blank" class="proj-link code" onclick="event.stopPropagation();">🐙 GitHub Repo</a>
               </div>
             </div>
@@ -3007,10 +3015,10 @@
     });
   </script>
 
-  <!-- Cloudflare Web Analytics -->
+  <!-- Analytics: uncomment and add your token/ID when ready
   <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
     data-cf-beacon='{"token": "YOUR_CLOUDFLARE_TOKEN_HERE"}'></script>
-  <!-- End Cloudflare Web Analytics -->
+  -->
 
   <!-- setup instructions live in SETUP-NOTES.txt (kept out of the page on purpose) -->
 </body>

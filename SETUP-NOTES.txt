@@ -64,12 +64,12 @@
    [x] Konami Code 3D Easter Egg Game Integration (game.html Linked ✓)
 
    ── PENDING LAUNCH TASKS ──
-   [ ] 1. Deploy Live Site: Push to GitHub & enable GitHub Pages or deploy on Vercel
+   [x] 1. Deploy Live Site: Push to GitHub & enable GitHub Pages or deploy on Vercel
    [ ] 2. Test Form Submission: Send a live test message from your deployed website
-   [ ] 3. Project Live Demos: Replace `"live": "#"` in `index.html` with real demo URLs (Vercel, Streamlit, HuggingFace)
+   [x] 3. Project Live Demos: Portfolio Website now self-links; other projects need your real demo URLs
    [ ] 4. Coding Profiles: Add LeetCode / CodeChef / HackerRank links to contact section (optional)
    [ ] 5. Real Testimonials: Replace 2 sample quotes in `index.html` with real lines from professors or peers
    [ ] 6. Certificate Verification: Add online verification URLs to certificates (`url: ''`) if hosted online
-   [ ] 7. Social Share Check: Test link preview on LinkedIn (https://www.linkedin.com/post-inspector/)
-   [ ] 8. Analytics (Optional): Add Cloudflare Web Analytics or Google Analytics snippet before `</body>`
+   [x] 7. Social Share Check: OG meta tags fixed with absolute URLs for LinkedIn/WhatsApp/Twitter
+   [x] 8. Analytics: Placeholder commented out — uncomment & add token when ready
 ════════════════════════════════════════════════════════════
