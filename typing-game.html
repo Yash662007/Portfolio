@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER-TYPE: NETRUNNER</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Orbitron:wght@500;700;900&display=swap');
+
+        :root {
+            --bg-color: #050510;
+            --neon-green: #0f0;
+            --neon-pink: #f0f;
+            --neon-blue: #0ff;
+            --glass-bg: rgba(20, 20, 40, 0.6);
+            --glass-border: rgba(0, 255, 255, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #fff;
+            font-family: 'Fira Code', monospace;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 50% 50%, #1a0b2e 0%, var(--bg-color) 100%),
+                linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+        }
+
+        /* CRT Scanline Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .hud-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+            text-transform: uppercase;
+        }
+
+        .hud-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: var(--neon-blue);
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .hud-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        #game-area {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .word-entity {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink);
+            transition: color 0.2s;
+            white-space: nowrap;
+        }
+
+        .word-entity .typed {
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        /* Screens */
+        .screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(5, 5, 16, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            transition: opacity 0.3s;
+        }
+
+        .screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .glitch-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            text-shadow: 
+                2px 2px 0px var(--neon-blue),
+                -2px -2px 0px var(--neon-pink);
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+            text-align: center;
+        }
+
+        .cyber-btn {
+            background: transparent;
+            color: var(--neon-blue);
+            font-family: 'Fira Code', monospace;
+            font-size: 1.2rem;
+            padding: 15px 40px;
+            border: 2px solid var(--neon-blue);
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2) inset;
+        }
+
+        .cyber-btn:hover {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+        }
+
+        #typing-input {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass-bg);
+            border: 2px solid var(--neon-blue);
+            color: var(--neon-green);
+            font-family: 'Fira Code', monospace;
+            font-size: 2rem;
+            padding: 10px 30px;
+            border-radius: 8px;
+            text-align: center;
+            width: 400px;
+            outline: none;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+            z-index: 10;
+        }
+
+        #typing-input:focus {
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .danger-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, transparent 50%, rgba(255,0,0,0.2) 100%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+            transition: opacity 0.2s;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="hud">
+        <div class="hud-panel">
+            <div class="hud-title">SCORE</div>
+            <div class="hud-value" id="score">0</div>
+        </div>
+        <div class="hud-panel">
+            <div class="hud-title">MULTIPLIER</div>
+            <div class="hud-value" id="multiplier">x1</div>
+        </div>
+        <div class="hud-panel" style="border-color: rgba(255,0,255,0.4);">
+            <div class="hud-title" style="color: var(--neon-pink);">SYSTEM INTEGRITY</div>
+            <div class="hud-value" id="lives">100%</div>
+        </div>
+    </div>
+
+    <div class="danger-overlay" id="danger"></div>
+    <div id="game-area"></div>
+    
+    <input type="text" id="typing-input" autocomplete="off" spellcheck="false" autofocus disabled>
+
+    <!-- Start Screen -->
+    <div class="screen" id="start-screen">
+        <div class="glitch-title">NETRUNNER</div>
+        <p style="margin-bottom: 40px; color: var(--neon-blue); letter-spacing: 2px;">Intercept the incoming data packets.</p>
+        <button class="cyber-btn" id="start-btn">INITIALIZE CONNECTION</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div class="screen hidden" id="game-over-screen">
+        <div class="glitch-title" style="color: var(--neon-pink); text-shadow: 2px 2px 0px #f00, -2px -2px 0px var(--neon-pink);">SYSTEM BREACHED</div>
+        <div style="font-size: 1.5rem; margin-bottom: 10px;">FINAL SCORE: <span id="final-score" style="color: var(--neon-green);">0</span></div>
+        <button class="cyber-btn" id="restart-btn" style="margin-top: 30px;">REBOOT SYSTEM</button>
+    </div>
+
+    <script>
+        const wordList = [
+            "algorithm", "bandwidth", "cyberpunk", "database", "encryption", 
+            "firewall", "gateway", "hologram", "interface", "javascript", 
+            "kernel", "latency", "mainframe", "network", "override", 
+            "protocol", "quantum", "router", "syntax", "terminal", 
+            "uplink", "variable", "webhook", "xml", "yottabyte", "zero-day",
+            "proxy", "node", "socket", "packet", "malware", "trojan", "botnet",
+            "cipher", "decrypt", "backdoor", "hash", "phishing", "exploit",
+            "payload", "spoofing", "vulnerability", "patch", "logic", "binary"
+        ];
+
+        let words = [];
+        let score = 0;
+        let lives = 100;
+        let combo = 0;
+        let gameLoop;
+        let spawnInterval;
+        let difficulty = 1;
+        let isPlaying = false;
+        let lastTime = 0;
+
+        const gameArea = document.getElementById('game-area');
+        const inputField = document.getElementById('typing-input');
+        const scoreEl = document.getElementById('score');
+        const livesEl = document.getElementById('lives');
+        const multiplierEl = document.getElementById('multiplier');
+        const dangerEl = document.getElementById('danger');
+        
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+
+        class WordEntity {
+            constructor(text, speed) {
+                this.text = text;
+                this.originalText = text;
+                this.typed = "";
+                this.speed = speed;
+                
+                this.el = document.createElement('div');
+                this.el.className = 'word-entity';
+                this.updateHTML();
+                
+                // Spawn randomly on the x-axis
+                this.x = Math.random() * (window.innerWidth - 150) + 20;
+                this.y = -50;
+                
+                this.el.style.left = this.x + 'px';
+                this.el.style.top = this.y + 'px';
+                
+                gameArea.appendChild(this.el);
+            }
+
+            updateHTML() {
+                this.el.innerHTML = `<span class="typed">${this.typed}</span>${this.text.substring(this.typed.length)}`;
+            }
+
+            move(dt) {
+                this.y += this.speed * dt;
+                this.el.style.top = this.y + 'px';
+                return this.y > window.innerHeight;
+            }
+
+            typeChar(char) {
+                if (this.text[this.typed.length] === char) {
+                    this.typed += char;
+                    this.updateHTML();
+                    return this.typed.length === this.text.length; // Returns true if completed
+                }
+                return false;
+            }
+            
+            destroy() {
+                this.el.remove();
+                createParticles(this.x + this.el.offsetWidth/2, this.y + this.el.offsetHeight/2);
+            }
+        }
+
+        function spawnWord() {
+            if (!isPlaying) return;
+            const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
+            const speed = 0.05 * difficulty + Math.random() * 0.05;
+            words.push(new WordEntity(randomWord, speed));
+            
+            // Increase difficulty slowly
+            difficulty += 0.05;
+            clearInterval(spawnInterval);
+            spawnInterval = setInterval(spawnWord, Math.max(800, 2000 - difficulty * 100));
+        }
+
+        function update(time) {
+            if (!isPlaying) return;
+            const dt = time - lastTime;
+            lastTime = time;
+
+            for (let i = words.length - 1; i >= 0; i--) {
+                const w = words[i];
+                if (w.move(dt)) {
+                    // Missed word
+                    w.el.remove();
+                    words.splice(i, 1);
+                    takeDamage(10);
+                    resetCombo();
+                }
+            }
+
+            gameLoop = requestAnimationFrame(update);
+        }
+
+        function takeDamage(amt) {
+            lives -= amt;
+            livesEl.textContent = lives + '%';
+            
+            // Screen flash red
+            dangerEl.style.opacity = '1';
+            setTimeout(() => { dangerEl.style.opacity = '0'; }, 200);
+
+            if (lives <= 0) {
+                endGame();
+            } else if (lives <= 30) {
+                livesEl.style.color = '#f00';
+            }
+        }
+
+        function addScore(wordLength) {
+            const multi = Math.floor(combo / 5) + 1;
+            multiplierEl.textContent = 'x' + multi;
+            score += wordLength * 10 * multi;
+            scoreEl.textContent = score;
+            combo++;
+        }
+
+        function resetCombo() {
+            combo = 0;
+            multiplierEl.textContent = 'x1';
+            inputField.value = ''; // clear input on miss
+            inputField.style.borderColor = '#f00';
+            setTimeout(() => { inputField.style.borderColor = 'var(--neon-blue)'; }, 300);
+        }
+
+        function createParticles(x, y) {
+            for (let i = 0; i < 15; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 100 + 50;
+                const tx = Math.cos(angle) * speed;
+                const ty = Math.sin(angle) * speed;
+                
+                gameArea.appendChild(p);
+                
+                p.animate([
+                    { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                    { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+                ], { duration: 600, easing: 'cubic-bezier(0,.9,.57,1)' }).onfinish = () => p.remove();
+            }
+        }
+
+        inputField.addEventListener('input', (e) => {
+            if (!isPlaying) return;
+            const val = e.target.value.toLowerCase();
+            
+            // Find if any word matches the prefix
+            let foundMatch = false;
+            let completedWordIndex = -1;
+
+            for (let i = 0; i < words.length; i++) {
+                const w = words[i];
+                if (w.text.startsWith(val)) {
+                    w.typed = val;
+                    w.updateHTML();
+                    foundMatch = true;
+                    
+                    if (val === w.text) {
+                        completedWordIndex = i;
+                    }
+                } else {
+                    w.typed = "";
+                    w.updateHTML();
+                }
+            }
+
+            if (completedWordIndex !== -1) {
+                // Word successfully typed
+                const w = words[completedWordIndex];
+                addScore(w.text.length);
+                w.destroy();
+                words.splice(completedWordIndex, 1);
+                inputField.value = ''; // Reset input
+            } else if (!foundMatch && val.length > 0) {
+                // Typo
+                inputField.style.backgroundColor = 'rgba(255,0,0,0.2)';
+                setTimeout(() => { inputField.style.backgroundColor = 'var(--glass-bg)'; }, 150);
+            }
+        });
+
+        function startGame() {
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            
+            // Reset state
+            words.forEach(w => w.el.remove());
+            words = [];
+            score = 0;
+            lives = 100;
+            combo = 0;
+            difficulty = 1;
+            
+            scoreEl.textContent = '0';
+            livesEl.textContent = '100%';
+            livesEl.style.color = 'inherit';
+            multiplierEl.textContent = 'x1';
+            
+            inputField.disabled = false;
+            inputField.value = '';
+            inputField.focus();
+            
+            isPlaying = true;
+            lastTime = performance.now();
+            
+            spawnInterval = setInterval(spawnWord, 2000);
+            requestAnimationFrame(update);
+        }
+
+        function endGame() {
+            isPlaying = false;
+            clearInterval(spawnInterval);
+            cancelAnimationFrame(gameLoop);
+            
+            inputField.disabled = true;
+            document.getElementById('final-score').textContent = score;
+            gameOverScreen.classList.remove('hidden');
+        }
+
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('restart-btn').addEventListener('click', startGame);
+        
+        // Keep focus on input
+        document.addEventListener('click', () => {
+            if (isPlaying) inputField.focus();
+        });
+
+    </script>
+</body>
+</html>

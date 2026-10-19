@@ -762,6 +762,101 @@
       color: var(--black);
     }
 
+    /* SMALL ACHIEVEMENTS (collapsible) */
+    #small-achievements { background: var(--white); }
+
+    .small-ach {
+      border: var(--border);
+      box-shadow: var(--shadow);
+      background: var(--lavender);
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+
+    .small-ach:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 8px 8px 0 var(--black);
+    }
+
+    .small-ach summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 26px;
+      font-family: var(--font-h);
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .small-ach summary::-webkit-details-marker { display: none; }
+
+    .small-ach summary small {
+      display: block;
+      font-family: var(--font-b);
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #444;
+      margin-top: 4px;
+    }
+
+    .small-ach-toggle {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      background: var(--butter);
+      border: var(--border);
+      box-shadow: var(--shadow-sm);
+      font-family: var(--font-b);
+      font-size: 1.3rem;
+      transition: transform 0.25s;
+    }
+
+    .small-ach[open] .small-ach-toggle { transform: rotate(45deg); }
+
+    .small-ach-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+      padding: 6px 26px 26px;
+      border-top: var(--border);
+      padding-top: 24px;
+      background: var(--white);
+      animation: smallAchIn 0.3s ease;
+    }
+
+    @keyframes smallAchIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .small-ach-item {
+      border: var(--border);
+      box-shadow: var(--shadow-sm);
+      padding: 18px;
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+
+    .small-ach-item:hover {
+      transform: translate(-2px, -2px) rotate(-1deg);
+      box-shadow: 5px 5px 0 var(--black);
+    }
+
+    .small-ach-item:nth-child(5n+1) { background: var(--mint); }
+    .small-ach-item:nth-child(5n+2) { background: var(--pink); }
+    .small-ach-item:nth-child(5n+3) { background: var(--sky); }
+    .small-ach-item:nth-child(5n+4) { background: var(--peach); }
+    .small-ach-item:nth-child(5n+5) { background: var(--butter); }
+
+    .small-ach-item .emoji { font-size: 1.8rem; display: block; margin-bottom: 8px; }
+    .small-ach-item h3 { font-family: var(--font-h); font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
+    .small-ach-item p { font-size: 0.75rem; line-height: 1.6; }
+
     #contact {
       background: var(--butter);
     }
@@ -2101,6 +2196,27 @@
     <div class="cert-grid" id="lettersGrid"></div>
   </section>
 
+  <section id="small-achievements">
+    <details class="small-ach" id="smallAchDetails">
+      <summary id="smallAchToggle">
+        <span>Small Achievements 🏅<small>THE LITTLE THINGS THAT DON'T GO ON A RESUME — CLICK TO EXPAND</small></span>
+        <span class="small-ach-toggle" aria-hidden="true">+</span>
+      </summary>
+      <div class="small-ach-list">
+        <div class="small-ach-item">
+          <span class="emoji">🧩</span>
+          <h3>Solved a Rubik's Cube</h3>
+          <p>Learned the algorithms and solved the 3×3 cube from scratch.</p>
+        </div>
+        <div class="small-ach-item">
+          <span class="emoji">🕷️</span>
+          <h3>Drew a Spider-Man Portrait</h3>
+          <p>Sketched a detailed Spider-Man portrait by hand.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
   <section id="contact">
     <div class="contact-inner">
       <div class="contact-text">
@@ -2194,64 +2310,94 @@
   <script>
     const projects = [
       {
-        title: "AI Image Classifier",
-        emoji: "🧠",
-        category: "aiml python",
-        desc: "Built a deep learning model to classify images into 10 categories using CNN architecture. Achieved 94% accuracy on the CIFAR-10 dataset.",
-        fullDesc: "Designed and trained a Convolutional Neural Network (CNN) using TensorFlow & Keras to automatically classify complex images from the CIFAR-10 dataset into 10 distinct classes. Features data augmentation, dropout layers to prevent overfitting, and custom evaluation metrics.",
-        tags: ["Python", "TensorFlow", "CNN", "Deep Learning"],
-        live: "#", code: "https://github.com/Yash662007",
-        accent: "#B6F5D8"
-      },
-      {
-        title: "ML Price Predictor",
-        emoji: "🏠",
-        category: "aiml python",
-        desc: "Developed a machine learning model to predict house prices using regression algorithms. Includes data preprocessing, feature engineering and model evaluation.",
-        fullDesc: "Built an end-to-end Machine Learning pipeline using Scikit-Learn to predict real estate prices based on multi-variate features. Implemented data cleaning, feature scaling, Random Forest & Gradient Boosting regressors, and cross-validation evaluation.",
-        tags: ["Python", "Scikit-learn", "Pandas", "ML"],
-        live: "#", code: "https://github.com/Yash662007",
+        title: "The Flappy Bird",
+        emoji: "🐦",
+        category: "python",
+        desc: "A classic Flappy Bird game clone built from scratch. Navigate the bird through pipes, score points, and challenge your reflexes!",
+        fullDesc: "Recreated the iconic Flappy Bird game with smooth physics, pipe generation, collision detection, and score tracking. Features responsive controls and progressively increasing difficulty for an addictive gameplay experience.",
+        tags: ["Python", "Game Dev", "Pygame"],
+        live: "#", code: "https://github.com/Yash662007/The-Flappy-bird",
         accent: "#FFB3CB"
       },
       {
-        title: "NLP Sentiment Analyzer",
-        emoji: "📝",
-        category: "aiml python",
-        desc: "Created a sentiment analysis tool for product reviews using NLP techniques and BERT transformer model. Deployed as a REST API.",
-        fullDesc: "Engineered a Natural Language Processing (NLP) sentiment classification engine leveraging BERT transformers. Processes raw user reviews, performs tokenization, and outputs sentiment confidence scores via a lightweight Flask REST API.",
-        tags: ["Python", "NLP", "BERT", "Flask"],
-        live: "#", code: "https://github.com/Yash662007",
-        accent: "#CABFFF"
-      },
-      {
-        title: "Portfolio Website",
-        emoji: "💻",
-        category: "webdev",
-        desc: "Designed and built this neo-brutalist portfolio from scratch using vanilla HTML, CSS and JavaScript with Three.js for the hidden 3D game.",
-        fullDesc: "Crafted a custom neo-brutalist personal portfolio website featuring responsive CSS layouts, custom interactive cursor, dynamic project category filtering, certificate/document modal viewers, Formspree AJAX contact form, and an easter-egg 3D game.",
-        tags: ["HTML", "CSS", "JavaScript", "Three.js"],
-        live: "https://yash662007.github.io/Portfolio/", code: "https://github.com/Yash662007/Portfolio",
+        title: "Food Bridge",
+        emoji: "🍲",
+        category: "webdev python",
+        desc: "An open-source food rescue platform connecting donors, volunteers, NGOs, and families in need through real-time tracking and smart matching.",
+        fullDesc: "FoodBridge is a full-stack food rescue platform that reduces food waste by connecting surplus food donors with volunteers and NGOs. Features real-time tracking, smart matching algorithms, and an intuitive dashboard to deliver food quickly, safely, and efficiently to those who need it most.",
+        tags: ["Python", "Web Dev", "Open Source", "Social Impact"],
+        live: "#", code: "https://github.com/Yash662007/Devsprint",
         accent: "#FFCBA4"
       },
       {
-        title: "Smart Attendance System",
-        emoji: "👁️",
-        category: "aiml python",
-        desc: "Automated attendance tracking system using OpenCV face recognition and computer vision algorithms.",
-        fullDesc: "Developed a computer vision application that detects and recognizes faces in real-time video streams using OpenCV and face_recognition library. Automatically logs student attendance into a local database with timestamps.",
-        tags: ["Python", "OpenCV", "Computer Vision", "SQLite"],
-        live: "#", code: "https://github.com/Yash662007",
+        title: "2D Racing Game",
+        emoji: "🏎️",
+        category: "python",
+        desc: "A fun and interactive 2D racing game built using Pygame. Dodge obstacles and race to the finish line!",
+        fullDesc: "Developed an engaging 2D top-down racing game from scratch using Python and the Pygame library. Implemented custom mechanics including obstacle generation, collision detection, and a scoring system.",
+        tags: ["Python", "Game Dev", "Pygame"],
+        live: "#", code: "https://github.com/Yash662007/2d-racing-game-",
+        accent: "#B6F5D8"
+      },
+      {
+        title: "String Art Studio",
+        emoji: "🎨",
+        category: "python aiml",
+        desc: "An application that generates string art from images. Convert your photos into mesmerizing string art patterns.",
+        fullDesc: "String Art Studio is an application that uses computational algorithms to convert any image into a continuous string art pattern. It calculates the optimal path for a single thread between pins on a circular frame to reproduce the input image.",
+        tags: ["Python", "Algorithm", "Art"],
+        live: "#", code: "https://github.com/Yash662007/String-Art-Studio",
+        accent: "#CABFFF"
+      },
+      {
+        title: "Classroom Loop",
+        emoji: "🏫",
+        category: "webdev aiml python",
+        desc: "An AI-powered teacher-coaching platform MVP that drives a continuous loop of training, practice, AI-analyzed evidence, and mentor feedback.",
+        fullDesc: "Classroom Loop is an innovative EdTech platform designed to enhance teacher coaching. It leverages AI to analyze teaching evidence, providing a continuous feedback loop between training, practical application, and mentor review.",
+        tags: ["Python", "AI", "EdTech", "Web Dev"],
+        live: "#", code: "https://github.com/Yash662007/Classroom-Loop",
         accent: "#FFF4A1"
       },
       {
-        title: "AI Gesture Controller",
-        emoji: "🖐️",
-        category: "aiml python",
-        desc: "Hand gesture recognition system that converts physical hand movements into system volume and media controls.",
-        fullDesc: "Built a human-computer interaction tool using MediaPipe and OpenCV. Tracks 21 hand keypoints in real-time to translate pinch and swipe gestures into system volume control, brightness adjustment, and media playback actions.",
-        tags: ["Python", "MediaPipe", "OpenCV", "PyAutoGUI"],
-        live: "#", code: "https://github.com/Yash662007",
+        title: "SmartClinic OS",
+        emoji: "🏥",
+        category: "webdev python",
+        desc: "A complete mini operating system for managing a small doctor's clinic with appointments, real-time queues, and patient management.",
+        fullDesc: "SmartClinic OS is a full-stack Flask application featuring role-based access for receptionists and doctors, interactive full-calendar booking, real-time WebSockets queue management, a smart waitlist, and Twilio WhatsApp automated reminders.",
+        tags: ["Python", "Flask", "WebSockets", "SQLite"],
+        live: "#", code: "https://github.com/Aman9y/SmartClinic_OS",
         accent: "#AADEFF"
+      },
+      {
+        title: "OptiAI",
+        emoji: "🤖",
+        category: "aiml webdev python",
+        desc: "An intelligent code optimization platform leveraging AI to analyze, optimize, and enhance your code with real-time SSE streaming.",
+        fullDesc: "OptiAI is a smart code enhancement tool built with Flask and powered by Ollama's Qwen2.5-Coder model. Features include real-time code optimization, Radon static analysis, multi-language support, async chat assistant, and in-browser code execution with a performance dashboard.",
+        tags: ["Python", "Flask", "AI", "Ollama"],
+        live: "#", code: "https://github.com/Aman9y/OptAi",
+        accent: "#B6F5D8"
+      },
+      {
+        title: "Open AOI",
+        emoji: "🔍",
+        category: "aiml python",
+        desc: "An open-source Automated Optical Inspection (AOI) system for hardware manufacturing.",
+        fullDesc: "An open-source Automated Optical Inspection (AOI) system for hardware manufacturing. Uses computer vision and multi-camera alignment to detect PCB defects, missing components, and surface anomalies.",
+        tags: ["Python", "Computer Vision", "Hardware", "Open Source"],
+        live: "#", code: "https://github.com/Yash662007/open-aoi",
+        accent: "#CABFFF"
+      },
+      {
+        title: "Career Recommendation System",
+        emoji: "💼",
+        category: "aiml python webdev",
+        desc: "A machine learning based career recommendation system that suggests suitable paths based on user interests.",
+        fullDesc: "Built an interactive ML-based Career Recommendation System using Streamlit. Features a 40+ question assessment and leverages multiple models (Random Forest, KNN, SVM, Decision Tree) unified by a Soft Voting Classifier to provide the top 3 career predictions with confidence scores.",
+        tags: ["Python", "Machine Learning", "Streamlit", "Scikit-learn"],
+        live: "#", code: "https://github.com/Yash662007/career-recommendation-system",
+        accent: "#FFB3CB"
       }
     ];
 
