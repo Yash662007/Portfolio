@@ -3080,7 +3080,105 @@
       document.addEventListener('mouseenter', () => { dot.style.opacity = '1'; ring.style.opacity = '1'; });
     }
 
-    // ── SECRET GAME UNLOCK ──
+    // ── SECRET ARCADE (game picker) ──
+    // Add new games here — they appear automatically in the arcade menu.
+    const ARCADE_GAMES = [
+      { title: 'NEON RUN', file: 'game.html', emoji: '🏃', genre: 'Endless Runner', desc: 'Dodge, jump and survive the neon grid as long as you can.', accent: '#B6F5D8', controls: 'Space / Tap' },
+      { title: 'CYBER-TYPE', file: 'typing-game.html', emoji: '⌨️', genre: 'Typing Shooter', desc: 'Netrunner mode: type words fast to blast incoming threats.', accent: '#CABFFF', controls: 'Keyboard' }
+    ];
+
+    const arcadeCss = document.createElement('style');
+    arcadeCss.textContent = `
+      #arcade{position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;padding:20px;
+        background:rgba(13,13,13,.82);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .3s}
+      #arcade.open{opacity:1;pointer-events:auto}
+      #arcade .arc-box{position:relative;width:min(880px,100%);max-height:92vh;overflow:auto;background:#0D0D0D;color:#FAFAF5;
+        border:2.5px solid #FAFAF5;box-shadow:8px 8px 0 #B6F5D8;padding:34px 30px 26px;font-family:var(--font-b);
+        transform:scale(.9) translateY(20px);transition:transform .4s cubic-bezier(.2,1.4,.4,1)}
+      #arcade.open .arc-box{transform:none}
+      #arcade .arc-box::before{content:'';position:absolute;inset:0;pointer-events:none;
+        background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px)}
+      #arcade .arc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
+      #arcade .arc-unlock{font-size:.7rem;letter-spacing:3px;color:#FFF4A1;animation:arcBlink 1s steps(2) infinite}
+      #arcade h2{font-family:var(--font-h);font-size:clamp(1.8rem,5vw,2.8rem);margin:4px 0 4px;line-height:1}
+      #arcade h2 span{color:#B6F5D8}
+      #arcade .arc-sub{font-size:.8rem;opacity:.65;margin-bottom:24px}
+      #arcade .arc-close{background:#FFB3CB;color:#0D0D0D;border:2px solid #FAFAF5;font:700 1rem var(--font-b);
+        width:40px;height:40px;cursor:pointer;flex-shrink:0;transition:transform .2s}
+      #arcade .arc-close:hover{transform:rotate(90deg)}
+      #arcade .arc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
+      #arcade .arc-card{display:flex;flex-direction:column;text-decoration:none;color:#0D0D0D;background:#FAFAF5;
+        border:2.5px solid #FAFAF5;box-shadow:5px 5px 0 var(--acc);transition:transform .2s,box-shadow .2s;outline:none;
+        opacity:0;animation:arcIn .45s forwards}
+      #arcade .arc-card:hover,#arcade .arc-card.sel{transform:translate(-4px,-4px);box-shadow:9px 9px 0 var(--acc)}
+      #arcade .arc-card.sel .arc-play{background:#0D0D0D;color:var(--acc)}
+      #arcade .arc-cover{height:130px;display:flex;align-items:center;justify-content:center;font-size:3.6rem;
+        background:linear-gradient(135deg,var(--acc),#FAFAF5 140%);border-bottom:2.5px solid #0D0D0D;position:relative}
+      #arcade .arc-card:hover .arc-cover span,#arcade .arc-card.sel .arc-cover span{animation:arcBob .6s ease-in-out infinite alternate}
+      #arcade .arc-genre{position:absolute;top:10px;left:10px;font-size:.6rem;font-weight:700;letter-spacing:1px;
+        text-transform:uppercase;background:#0D0D0D;color:#FAFAF5;padding:3px 8px}
+      #arcade .arc-body{padding:16px;display:flex;flex-direction:column;gap:8px;flex:1}
+      #arcade .arc-title{font-family:var(--font-h);font-weight:800;font-size:1.25rem}
+      #arcade .arc-desc{font-size:.75rem;line-height:1.5;opacity:.8;flex:1}
+      #arcade .arc-meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:.65rem}
+      #arcade .arc-play{border:2px solid #0D0D0D;padding:6px 12px;font-weight:700;background:var(--acc);transition:.2s}
+      #arcade .arc-foot{margin-top:22px;font-size:.68rem;opacity:.55;text-align:center;letter-spacing:1px}
+      @keyframes arcIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+      @keyframes arcBob{to{transform:translateY(-8px) scale(1.08)}}
+      @keyframes arcBlink{50%{opacity:0}}`;
+    document.head.appendChild(arcadeCss);
+
+    const arcade = document.createElement('div');
+    arcade.id = 'arcade';
+    arcade.setAttribute('role', 'dialog');
+    arcade.setAttribute('aria-modal', 'true');
+    arcade.setAttribute('aria-label', 'Secret arcade');
+    arcade.innerHTML = `
+      <div class="arc-box">
+        <div class="arc-top">
+          <div>
+            <div class="arc-unlock">★ CHEAT CODE ACCEPTED ★</div>
+            <h2>SECRET <span>ARCADE</span></h2>
+            <div class="arc-sub">${ARCADE_GAMES.length} games unlocked — pick your poison.</div>
+          </div>
+          <button class="arc-close" id="arcadeClose" aria-label="Close arcade">✕</button>
+        </div>
+        <div class="arc-grid">
+          ${ARCADE_GAMES.map((g, i) => `
+            <a class="arc-card" id="arcade-game-${i}" href="${g.file}" style="--acc:${g.accent};animation-delay:${0.1 + i * 0.08}s">
+              <div class="arc-cover"><div class="arc-genre">${g.genre}</div><span>${g.emoji}</span></div>
+              <div class="arc-body">
+                <div class="arc-title">${g.title}</div>
+                <div class="arc-desc">${g.desc}</div>
+                <div class="arc-meta"><span>🎮 ${g.controls}</span><span class="arc-play">▶ PLAY</span></div>
+              </div>
+            </a>`).join('')}
+        </div>
+        <div class="arc-foot">← → to choose · ENTER to play · ESC to exit</div>
+      </div>`;
+    document.body.appendChild(arcade);
+
+    const arcCards = [...arcade.querySelectorAll('.arc-card')];
+    let arcSel = 0;
+    function arcSelect(i) {
+      arcSel = (i + arcCards.length) % arcCards.length;
+      arcCards.forEach((c, j) => c.classList.toggle('sel', j === arcSel));
+      arcCards[arcSel].focus({ preventScroll: true });
+    }
+    function openArcade() {
+      arcade.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      arcCards.forEach(c => { c.style.animation = 'none'; c.offsetHeight; c.style.animation = ''; });
+      arcSelect(0);
+    }
+    function closeArcade() {
+      arcade.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.getElementById('arcadeClose').addEventListener('click', closeArcade);
+    arcade.addEventListener('click', e => { if (e.target === arcade) closeArcade(); });
+    arcCards.forEach((c, i) => c.addEventListener('mouseenter', () => arcSelect(i)));
+
     const navLogo = document.getElementById('navLogo');
 
     // Mobile: triple tap nav logo
@@ -3090,7 +3188,7 @@
       tapCount++;
       if (tapCount === 3) {
         tapCount = 0;
-        window.location.href = 'game.html';
+        openArcade();
         return;
       }
       tapTimer = setTimeout(() => { tapCount = 0; }, 1500);
@@ -3100,14 +3198,20 @@
     const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft'];
     let kStep = 0;
     document.addEventListener('keydown', e => {
+      if (arcade.classList.contains('open')) {
+        if (e.key === 'Escape') closeArcade();
+        else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); arcSelect(arcSel + 1); }
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); arcSelect(arcSel - 1); }
+        return;
+      }
       if (e.key === KONAMI[kStep]) {
         kStep++;
         if (kStep === KONAMI.length) {
           kStep = 0;
-          window.location.href = 'game.html';
+          openArcade();
         }
       } else {
-        kStep = 0;
+        kStep = e.key === KONAMI[0] ? 1 : 0;
       }
     });
 

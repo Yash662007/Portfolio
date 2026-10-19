@@ -207,6 +207,85 @@
             z-index: 5;
             transition: opacity 0.2s;
         }
+
+        /* Locked target + danger zone */
+        .word-entity.target {
+            transform: scale(1.12);
+            outline: 1px dashed var(--neon-blue);
+            outline-offset: 6px;
+            z-index: 3;
+        }
+        .word-entity.near {
+            color: #ff3355;
+            text-shadow: 0 0 14px #ff0033, 0 0 30px #ff0033;
+            animation: pulse 0.5s ease-in-out infinite alternate;
+        }
+        @keyframes pulse { to { filter: brightness(1.6); } }
+
+        .popup {
+            position: absolute;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.1rem;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 4;
+        }
+        .popup.big { font-size: 1.6rem; color: #ff0; text-shadow: 0 0 14px #ff0; }
+
+        .shake { animation: shake 0.3s; }
+        @keyframes shake {
+            0%,100% { transform: translate(0,0); }
+            20% { transform: translate(-8px, 4px); }
+            40% { transform: translate(7px, -5px); }
+            60% { transform: translate(-5px, 3px); }
+            80% { transform: translate(4px, -2px); }
+        }
+
+        #mute-btn {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 150;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--neon-blue);
+            font-size: 1.2rem;
+            width: 46px;
+            height: 46px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        #mute-btn:hover { box-shadow: 0 0 20px rgba(0,255,255,0.4); }
+
+        .best-line { color: #ff0; letter-spacing: 2px; margin-bottom: 30px; text-shadow: 0 0 10px rgba(255,255,0,0.5); }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(110px, 1fr));
+            gap: 14px;
+            margin: 20px 0 10px;
+        }
+        .stat-box { text-align: center; }
+        .stat-box .hud-value { font-size: 1.8rem; color: var(--neon-green); }
+        .new-best {
+            font-family: 'Orbitron', sans-serif;
+            color: #ff0;
+            font-weight: 900;
+            letter-spacing: 3px;
+            margin-top: 10px;
+            animation: pulse 0.4s infinite alternate;
+        }
+        @media (max-width: 600px) {
+            .glitch-title { font-size: 2.4rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            #typing-input { width: 85vw; font-size: 1.5rem; }
+            .hud-panel { padding: 8px 12px; }
+            .hud-value { font-size: 1.1rem; }
+            #mute-btn { top: auto; bottom: 110px; }
+        }
     </style>
 </head>
 <body>
@@ -229,20 +308,30 @@
     <div class="danger-overlay" id="danger"></div>
     <div id="game-area"></div>
     
-    <input type="text" id="typing-input" autocomplete="off" spellcheck="false" autofocus disabled>
+    <input type="text" id="typing-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus disabled>
+
+    <button id="mute-btn" aria-label="Toggle sound">🔊</button>
 
     <!-- Start Screen -->
     <div class="screen" id="start-screen">
-        <div class="glitch-title">NETRUNNER</div>
-        <p style="margin-bottom: 40px; color: var(--neon-blue); letter-spacing: 2px;">Intercept the incoming data packets.</p>
+        <h1 class="glitch-title">NETRUNNER</h1>
+        <p style="margin-bottom: 14px; color: var(--neon-blue); letter-spacing: 2px;">Intercept the incoming data packets.</p>
+        <div class="best-line" id="start-best">HIGH SCORE: 0</div>
         <button class="cyber-btn" id="start-btn">INITIALIZE CONNECTION</button>
     </div>
 
     <!-- Game Over Screen -->
     <div class="screen hidden" id="game-over-screen">
         <div class="glitch-title" style="color: var(--neon-pink); text-shadow: 2px 2px 0px #f00, -2px -2px 0px var(--neon-pink);">SYSTEM BREACHED</div>
-        <div style="font-size: 1.5rem; margin-bottom: 10px;">FINAL SCORE: <span id="final-score" style="color: var(--neon-green);">0</span></div>
-        <button class="cyber-btn" id="restart-btn" style="margin-top: 30px;">REBOOT SYSTEM</button>
+        <div style="font-size: 1.5rem;">FINAL SCORE: <span id="final-score" style="color: var(--neon-green);">0</span></div>
+        <div class="new-best" id="new-best" style="display:none;">★ NEW HIGH SCORE ★</div>
+        <div class="stats-grid">
+            <div class="hud-panel stat-box"><div class="hud-title">WPM</div><div class="hud-value" id="stat-wpm">0</div></div>
+            <div class="hud-panel stat-box"><div class="hud-title">ACCURACY</div><div class="hud-value" id="stat-acc">0%</div></div>
+            <div class="hud-panel stat-box"><div class="hud-title">BEST COMBO</div><div class="hud-value" id="stat-combo">0</div></div>
+            <div class="hud-panel stat-box"><div class="hud-title">HIGH SCORE</div><div class="hud-value" id="stat-best">0</div></div>
+        </div>
+        <button class="cyber-btn" id="restart-btn" style="margin-top: 20px;">REBOOT SYSTEM</button>
     </div>
 
     <script>
@@ -267,6 +356,54 @@
         let isPlaying = false;
         let lastTime = 0;
 
+        // Stats
+        let startTime = 0;
+        let correctKeys = 0;
+        let totalKeys = 0;
+        let charsCleared = 0;
+        let bestCombo = 0;
+        let prevLen = 0;
+        let target = null; // the single word currently locked on
+        const BEST_KEY = 'cybertype_best';
+        let highScore = parseInt(localStorage.getItem(BEST_KEY) || '0', 10);
+        document.getElementById('start-best').textContent = 'HIGH SCORE: ' + highScore;
+
+        // ── SOUND (WebAudio synth, no files needed) ──
+        let muted = localStorage.getItem('cybertype_muted') === '1';
+        let actx = null;
+        const muteBtn = document.getElementById('mute-btn');
+        muteBtn.textContent = muted ? '🔇' : '🔊';
+        muteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            muted = !muted;
+            localStorage.setItem('cybertype_muted', muted ? '1' : '0');
+            muteBtn.textContent = muted ? '🔇' : '🔊';
+            if (isPlaying) inputField.focus();
+        });
+        function tone(freq, dur, type = 'square', vol = 0.05, slideTo = null, delay = 0) {
+            if (muted) return;
+            if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+            const t = actx.currentTime + delay;
+            const o = actx.createOscillator();
+            const g = actx.createGain();
+            o.type = type;
+            o.frequency.setValueAtTime(freq, t);
+            if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+            g.gain.setValueAtTime(vol, t);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+            o.connect(g).connect(actx.destination);
+            o.start(t);
+            o.stop(t + dur);
+        }
+        const sfx = {
+            key: () => tone(900 + Math.random() * 200, 0.04, 'square', 0.025),
+            miss: () => tone(140, 0.12, 'sawtooth', 0.05),
+            boom: (m) => { tone(220 * Math.min(m, 4), 0.25, 'triangle', 0.08, 880 * Math.min(m, 4)); tone(80, 0.2, 'sawtooth', 0.05, 30); },
+            damage: () => { tone(300, 0.35, 'sawtooth', 0.09, 60); },
+            levelUp: () => [523, 659, 784].forEach((f, i) => tone(f, 0.12, 'square', 0.05, null, i * 0.08)),
+            over: () => [440, 330, 220, 110].forEach((f, i) => tone(f, 0.3, 'sawtooth', 0.07, null, i * 0.18))
+        };
+
         const gameArea = document.getElementById('game-area');
         const inputField = document.getElementById('typing-input');
         const scoreEl = document.getElementById('score');
@@ -288,14 +425,14 @@
                 this.el.className = 'word-entity';
                 this.updateHTML();
                 
-                // Spawn randomly on the x-axis
-                this.x = Math.random() * (window.innerWidth - 150) + 20;
                 this.y = -50;
-                
-                this.el.style.left = this.x + 'px';
                 this.el.style.top = this.y + 'px';
-                
                 gameArea.appendChild(this.el);
+
+                // Spawn randomly on the x-axis, fully on-screen (measured after render)
+                const w = this.el.offsetWidth;
+                this.x = 20 + Math.random() * Math.max(0, window.innerWidth - w - 40);
+                this.el.style.left = this.x + 'px';
             }
 
             updateHTML() {
@@ -305,21 +442,13 @@
             move(dt) {
                 this.y += this.speed * dt;
                 this.el.style.top = this.y + 'px';
+                this.el.classList.toggle('near', this.y > window.innerHeight * 0.7);
                 return this.y > window.innerHeight;
-            }
-
-            typeChar(char) {
-                if (this.text[this.typed.length] === char) {
-                    this.typed += char;
-                    this.updateHTML();
-                    return this.typed.length === this.text.length; // Returns true if completed
-                }
-                return false;
             }
             
             destroy() {
-                this.el.remove();
                 createParticles(this.x + this.el.offsetWidth/2, this.y + this.el.offsetHeight/2);
+                this.el.remove();
             }
         }
 
@@ -331,8 +460,8 @@
             
             // Increase difficulty slowly
             difficulty += 0.05;
-            clearInterval(spawnInterval);
-            spawnInterval = setInterval(spawnWord, Math.max(800, 2000 - difficulty * 100));
+            clearTimeout(spawnInterval);
+            spawnInterval = setTimeout(spawnWord, Math.max(800, 2000 - difficulty * 100));
         }
 
         function update(time) {
@@ -346,17 +475,41 @@
                     // Missed word
                     w.el.remove();
                     words.splice(i, 1);
+                    if (w === target) target = null;
                     takeDamage(10);
                     resetCombo();
+                    if (!isPlaying) return;
                 }
             }
 
             gameLoop = requestAnimationFrame(update);
         }
 
+        function shake() {
+            document.body.classList.remove('shake');
+            void document.body.offsetWidth;
+            document.body.classList.add('shake');
+        }
+
+        function popup(x, y, text, big = false) {
+            const p = document.createElement('div');
+            p.className = 'popup' + (big ? ' big' : '');
+            p.textContent = text;
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            gameArea.appendChild(p);
+            p.animate([
+                { transform: 'translate(-50%, 0) scale(0.6)', opacity: 0 },
+                { transform: 'translate(-50%, -20px) scale(1.15)', opacity: 1, offset: 0.25 },
+                { transform: 'translate(-50%, -70px) scale(1)', opacity: 0 }
+            ], { duration: 900, easing: 'ease-out' }).onfinish = () => p.remove();
+        }
+
         function takeDamage(amt) {
-            lives -= amt;
+            lives = Math.max(0, lives - amt);
             livesEl.textContent = lives + '%';
+            sfx.damage();
+            shake();
             
             // Screen flash red
             dangerEl.style.opacity = '1';
@@ -369,18 +522,33 @@
             }
         }
 
-        function addScore(wordLength) {
+        function addScore(w) {
+            combo++; // count first so the multiplier shown matches the points awarded
+            bestCombo = Math.max(bestCombo, combo);
             const multi = Math.floor(combo / 5) + 1;
+            const prevMulti = Math.floor((combo - 1) / 5) + 1;
             multiplierEl.textContent = 'x' + multi;
-            score += wordLength * 10 * multi;
+            const pts = w.text.length * 10 * multi;
+            score += pts;
             scoreEl.textContent = score;
-            combo++;
+            charsCleared += w.text.length;
+
+            const cx = w.x + w.el.offsetWidth / 2, cy = w.y;
+            popup(cx, cy, `+${pts}` + (multi > 1 ? ` x${multi}` : ''));
+            sfx.boom(multi);
+            if (multi > prevMulti) {
+                popup(window.innerWidth / 2, window.innerHeight * 0.4, `COMBO x${multi}!`, true);
+                sfx.levelUp();
+            }
         }
 
         function resetCombo() {
             combo = 0;
             multiplierEl.textContent = 'x1';
             inputField.value = ''; // clear input on miss
+            prevLen = 0;
+            words.forEach(w => { w.typed = ''; w.updateHTML(); w.el.classList.remove('target'); });
+            target = null;
             inputField.style.borderColor = '#f00';
             setTimeout(() => { inputField.style.borderColor = 'var(--neon-blue)'; }, 300);
         }
@@ -408,37 +576,45 @@
 
         inputField.addEventListener('input', (e) => {
             if (!isPlaying) return;
-            const val = e.target.value.toLowerCase();
-            
-            // Find if any word matches the prefix
-            let foundMatch = false;
-            let completedWordIndex = -1;
+            const val = e.target.value.toLowerCase().trim();
+            const grew = val.length > prevLen;
+            prevLen = val.length;
 
-            for (let i = 0; i < words.length; i++) {
-                const w = words[i];
-                if (w.text.startsWith(val)) {
-                    w.typed = val;
-                    w.updateHTML();
-                    foundMatch = true;
-                    
-                    if (val === w.text) {
-                        completedWordIndex = i;
-                    }
-                } else {
-                    w.typed = "";
-                    w.updateHTML();
+            // Lock onto ONE word: keep the current target if it still matches,
+            // otherwise pick the matching word closest to the bottom (most dangerous).
+            if (!val) {
+                target = null;
+            } else if (!target || !target.text.startsWith(val)) {
+                target = null;
+                for (const w of words) {
+                    if (w.text.startsWith(val) && (!target || w.y > target.y)) target = w;
                 }
             }
 
-            if (completedWordIndex !== -1) {
+            words.forEach(w => {
+                const isT = w === target;
+                w.typed = isT ? val : '';
+                w.updateHTML();
+                w.el.classList.toggle('target', isT);
+            });
+
+            if (grew) {
+                totalKeys++;
+                if (target) { correctKeys++; sfx.key(); }
+            }
+
+            if (target && val === target.text) {
                 // Word successfully typed
-                const w = words[completedWordIndex];
-                addScore(w.text.length);
+                const w = target;
+                addScore(w);
                 w.destroy();
-                words.splice(completedWordIndex, 1);
+                words.splice(words.indexOf(w), 1);
+                target = null;
                 inputField.value = ''; // Reset input
-            } else if (!foundMatch && val.length > 0) {
+                prevLen = 0;
+            } else if (!target && val.length > 0 && grew) {
                 // Typo
+                sfx.miss();
                 inputField.style.backgroundColor = 'rgba(255,0,0,0.2)';
                 setTimeout(() => { inputField.style.backgroundColor = 'var(--glass-bg)'; }, 150);
             }
@@ -455,6 +631,9 @@
             lives = 100;
             combo = 0;
             difficulty = 1;
+            correctKeys = totalKeys = charsCleared = bestCombo = prevLen = 0;
+            target = null;
+            startTime = performance.now();
             
             scoreEl.textContent = '0';
             livesEl.textContent = '100%';
@@ -468,17 +647,37 @@
             isPlaying = true;
             lastTime = performance.now();
             
-            spawnInterval = setInterval(spawnWord, 2000);
-            requestAnimationFrame(update);
+            clearTimeout(spawnInterval);
+            spawnInterval = setTimeout(spawnWord, 1200);
+            gameLoop = requestAnimationFrame(update);
         }
 
         function endGame() {
+            if (!isPlaying) return;
             isPlaying = false;
-            clearInterval(spawnInterval);
+            clearTimeout(spawnInterval);
             cancelAnimationFrame(gameLoop);
+            sfx.over();
             
             inputField.disabled = true;
+            inputField.blur();
+
+            const minutes = Math.max((performance.now() - startTime) / 60000, 1 / 60);
+            const wpm = Math.round((charsCleared / 5) / minutes);
+            const acc = totalKeys ? Math.round((correctKeys / totalKeys) * 100) : 0;
+            const isNewBest = score > highScore;
+            if (isNewBest) {
+                highScore = score;
+                localStorage.setItem(BEST_KEY, String(highScore));
+            }
+
             document.getElementById('final-score').textContent = score;
+            document.getElementById('stat-wpm').textContent = wpm;
+            document.getElementById('stat-acc').textContent = acc + '%';
+            document.getElementById('stat-combo').textContent = bestCombo;
+            document.getElementById('stat-best').textContent = highScore;
+            document.getElementById('new-best').style.display = isNewBest && score > 0 ? 'block' : 'none';
+            document.getElementById('start-best').textContent = 'HIGH SCORE: ' + highScore;
             gameOverScreen.classList.remove('hidden');
         }
 
