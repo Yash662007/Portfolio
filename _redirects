@@ -1,0 +1,4 @@
+# Netlify redirects
+# Old game URL -> new name (keeps old bookmarks / cached pages working)
+/game.html   /neon-run.html   301
+/game        /neon-run.html   301
