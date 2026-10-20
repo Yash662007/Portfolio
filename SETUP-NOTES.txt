@@ -51,7 +51,7 @@
 
 8) HIDDEN 3D EASTER EGG GAME 🎮
    - Press Konami Code on your keyboard: ↑ ↑ ↓ ↓ ← → ← → B A
-   - Redirects visitors to `game.html` (3D web game built with Three.js).
+   - Redirects visitors to `neon-run.html` (3D web game built with Three.js).
 
 9) QUICK CHECKLIST (Launch & Optimization Roadmap)
    ── COMPLETED FEATURES ──
@@ -61,7 +61,7 @@
    [x] 16 Real Certificate Cards (Added from Certificates/ folder ✓)
    [x] 4 Horizontal Carousels with Controls & Counters (Projects, Certificates, Letters, Testimonials ✓)
    [x] Smooth Typing Animation & Neo-Brutalist Theme System (Configured ✓)
-   [x] Konami Code 3D Easter Egg Game Integration (game.html Linked ✓)
+   [x] Konami Code 3D Easter Egg Game Integration (neon-run.html Linked ✓)
 
    ── PENDING LAUNCH TASKS ──
    [x] 1. Deploy Live Site: Push to GitHub & enable GitHub Pages or deploy on Vercel

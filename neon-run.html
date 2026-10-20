@@ -178,6 +178,18 @@
     }
     #soundBtn:hover { color: var(--mint); border-color: var(--mint); }
 
+    /* ── PAUSE BUTTON (works for touch + mouse) ── */
+    #pauseBtn {
+      position: fixed; top: 16px; left: 16px; z-index: 30;
+      font-family: var(--font-b); font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase;
+      background: var(--black); color: var(--white);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      padding: 5px 12px; cursor: pointer; display: none;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    #pauseBtn:hover { color: var(--mint); border-color: var(--mint); }
+
     /* ── PAUSE SCREEN (same look as start/game-over screens) ── */
     #pauseScreen .s-title { font-size: clamp(2rem, 6vw, 4rem); }
 
@@ -309,6 +321,7 @@
 
   <!-- SOUND TOGGLE -->
   <button id="soundBtn">🔊 SOUND: ON</button>
+  <button id="pauseBtn">⏸ PAUSE</button>
 
   <!-- PAUSE SCREEN -->
   <div class="screen hidden" id="pauseScreen">
@@ -505,7 +518,7 @@
       scene.add(shieldRing);
     }
     function removeShieldRing() {
-      if (shieldRing) { scene.remove(shieldRing); shieldRing = null; }
+      if (shieldRing) { disposeObj(shieldRing); shieldRing = null; }
     }
 
     // ── NITRO TRAIL ───────────────────────────────────────
@@ -777,10 +790,12 @@
     });
     document.addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'KeyS' || e.code === 'ArrowDown') braking = false; });
 
-    document.getElementById('mobLeft').addEventListener('touchstart',  e => { e.preventDefault(); if (running && laneIdx > 0) { laneIdx--; targetX = LANES[laneIdx]; } }, { passive: false });
-    document.getElementById('mobRight').addEventListener('touchstart', e => { e.preventDefault(); if (running && laneIdx < 2) { laneIdx++; targetX = LANES[laneIdx]; } }, { passive: false });
-    document.getElementById('mobJump').addEventListener('touchstart',  e => { e.preventDefault(); if (running && !isJumping) { jumpVel = JUMP_FORCE; isJumping = true; } }, { passive: false });
-    document.getElementById('mobBrake').addEventListener('touchstart', e => { e.preventDefault(); if (running) { braking = true; } }, { passive: false });
+    // `canControl()` = game is live (not paused, not mid-crash)
+    const canControl = () => running && !paused && !crashed;
+    document.getElementById('mobLeft').addEventListener('touchstart',  e => { e.preventDefault(); if (canControl() && laneIdx > 0) { laneIdx--; targetX = LANES[laneIdx]; } }, { passive: false });
+    document.getElementById('mobRight').addEventListener('touchstart', e => { e.preventDefault(); if (canControl() && laneIdx < 2) { laneIdx++; targetX = LANES[laneIdx]; } }, { passive: false });
+    document.getElementById('mobJump').addEventListener('touchstart',  e => { e.preventDefault(); if (canControl() && !isJumping) { jumpVel = JUMP_FORCE; isJumping = true; } }, { passive: false });
+    document.getElementById('mobBrake').addEventListener('touchstart', e => { e.preventDefault(); if (canControl()) { braking = true; } }, { passive: false });
     document.getElementById('mobBrake').addEventListener('touchend',   e => { e.preventDefault(); braking = false; }, { passive: false });
 
     // ── UI ───────────────────────────────────────────────────
@@ -843,12 +858,12 @@
       coinTimer = 0; coinStreak = 0; comboMult = 1; driveScore = 0;
       crashed = false; crashTimer = 0;
       shieldActive = false; shieldSpawnAt = 900;
-      shields.forEach(s => scene.remove(s)); shields.length = 0;
-      trailParticles.forEach(p => scene.remove(p)); trailParticles.length = 0;
+      shields.forEach(s => disposeObj(s)); shields.length = 0;
+      trailParticles.forEach(p => disposeObj(p)); trailParticles.length = 0;
       removeShieldRing();
-      particles.forEach(p => scene.remove(p)); particles.length = 0;
-      coins.forEach(c => scene.remove(c)); coins.length = 0;
-      obstacles.forEach(o => scene.remove(o)); obstacles.length = 0;
+      particles.forEach(p => disposeObj(p)); particles.length = 0;
+      coins.forEach(c => disposeObj(c)); coins.length = 0;
+      obstacles.forEach(o => disposeObj(o)); obstacles.length = 0;
       comboBox.style.display = 'none';
       warningPopup.classList.remove('show');
       car.position.set(LANES[laneIdx], GROUND_Y, 2);
@@ -866,6 +881,7 @@
       diffLeft.style.display  = 'block';
       diffRight.style.display = 'block';
       nitroHud.style.display  = 'flex';
+      pauseBtn.style.display  = 'block';
       slLeft.style.display  = 'block';
       slRight.style.display = 'block';
       runCountdown(() => { if (audioCtx.state === 'suspended') audioCtx.resume(); startEngine(); running = true; });
@@ -883,6 +899,7 @@
       diffLeft.style.display  = 'none';
       diffRight.style.display = 'none';
       nitroHud.style.display  = 'none';
+      pauseBtn.style.display  = 'none';
       slLeft.style.display  = 'none';
       slRight.style.display = 'none';
       stopEngine();
@@ -896,24 +913,40 @@
 
     // ── PAUSE / RESUME ──────────────────────────────────────
     const pauseScreen = document.getElementById('pauseScreen');
+    const pauseBtn    = document.getElementById('pauseBtn');
     function pauseGame() {
       paused = true;
+      braking = false;
       stopEngine();          // silence the engine hum
       pauseScreen.classList.remove('hidden');
+      pauseBtn.textContent = '▶ RESUME';
     }
     function resumeGame() {
       paused = false;
-      keys.ArrowLeft  = false;  // release any "stuck" keys held while paused
-      keys.ArrowRight = false;
-      keys.Space      = false;
-      keys.ShiftLeft  = false;
-      keys.KeyS       = false;
+      for (const k in keys) keys[k] = false; // release any "stuck" keys held while paused
       if (soundOn) startEngine();
       pauseScreen.classList.add('hidden');
+      pauseBtn.textContent = '⏸ PAUSE';
     }
     document.getElementById('resumeBtn').addEventListener('click', resumeGame);
     // tapping the pause screen background also resumes (handy on phones)
     pauseScreen.addEventListener('click', e => { if (e.target === pauseScreen) resumeGame(); });
+    // on-screen pause button (the only way to pause on mobile)
+    pauseBtn.addEventListener('click', () => {
+      if (!running || crashed) return;
+      paused ? resumeGame() : pauseGame();
+    });
+    // auto-pause when the tab is hidden / window minimised
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && running && !paused && !crashed) pauseGame();
+    });
+
+    // remove a mesh AND free its GPU memory (prevents slow memory growth)
+    function disposeObj(m) {
+      scene.remove(m);
+      if (m.geometry) m.geometry.dispose();
+      if (m.material) m.material.dispose();
+    }
 
     // ── COLLISION ────────────────────────────────────────────
     function checkCollision() {
@@ -927,10 +960,24 @@
     }
 
     // ── LOOP ─────────────────────────────────────────────────
-    function animate() {
+    // Fixed timestep: game logic always runs at 60 updates/sec, so speed is
+    // identical on 60Hz, 120Hz and 144Hz screens.
+    const STEP = 1000 / 60;
+    let lastTime = null, accumulator = 0;
+    function animate(now) {
       requestAnimationFrame(animate);
+      if (lastTime === null) lastTime = now;
+      accumulator += Math.min(now - lastTime, 250); // cap to avoid huge catch-up after lag
+      lastTime = now;
+      while (accumulator >= STEP) {
+        accumulator -= STEP;
+        if (running && !paused) update();
+      }
+      renderer.render(scene, camera);
+    }
 
-      if (running && !paused) {
+    function update() {
+      {
         frame++;
         score += speed * 2;
         driveScore += speed * 2;
@@ -938,13 +985,14 @@
         if (driveScore < 2500) {
           speed = Math.min(0.55, 0.18 + tier * 0.05);
         } else {
-          speed = Math.min(0.80, 0.55 + Math.floor((driveScore - 2500) / 250) * 0.20);
+          // gentle ramp past the danger zone (was a sudden +0.20 jump)
+          speed = Math.min(0.80, 0.55 + Math.floor((driveScore - 2500) / 250) * 0.05);
           if (!warnShown) {
             warnShown = true;
             warningPopup.classList.remove('show');
             void warningPopup.offsetWidth;
             warningPopup.classList.add('show');
-            obstacles.forEach(o => scene.remove(o));
+            obstacles.forEach(o => disposeObj(o));
             obstacles.length = 0;
             spawnFrozen = true;
             setTimeout(() => {
@@ -973,7 +1021,7 @@
 
         // 2 sec before warning — clear obstacles early
         if (!warnShown && driveScore >= 2380 && driveScore < 2500) {
-          obstacles.forEach(o => scene.remove(o));
+          obstacles.forEach(o => disposeObj(o));
           obstacles.length = 0;
           spawnFrozen = true;
         }
@@ -994,7 +1042,7 @@
           camShakeY += (Math.random()-0.5)*0.1;
           if (nitroTimer <= 0) nitroActive = false;
         }
-        if (braking) effectiveSpeed = speed * 0.3;
+        if (braking && !nitroActive) effectiveSpeed = speed * 0.3; // nitro wins over brake
 
         // update nitro cylinders
         nitroEls.forEach((el, i) => {
@@ -1029,11 +1077,11 @@
           const sdx = Math.abs(car.position.x - shields[i].position.x);
           const sdz = Math.abs(car.position.z - shields[i].position.z);
           if (sdx < 0.9 && sdz < 1.2) {
-            scene.remove(shields[i]); shields.splice(i, 1);
+            disposeObj(shields[i]); shields.splice(i, 1);
             shieldActive = true;
             attachShieldRing();
           } else if (shields[i].position.z > 8) {
-            scene.remove(shields[i]); shields.splice(i, 1);
+            disposeObj(shields[i]); shields.splice(i, 1);
           }
         }
 
@@ -1051,7 +1099,7 @@
           tp.position.z += effectiveSpeed * 0.5;
           tp.userData.life--;
           tp.material.opacity = tp.userData.life / tp.userData.maxLife;
-          if (tp.userData.life <= 0) { scene.remove(tp); trailParticles.splice(i, 1); }
+          if (tp.userData.life <= 0) { disposeObj(tp); trailParticles.splice(i, 1); }
         }
 
         // engine pitch
@@ -1067,7 +1115,7 @@
           const cdx = Math.abs(car.position.x - coins[i].position.x);
           const cdz = Math.abs(car.position.z - coins[i].position.z);
           if (cdx < 0.8 && cdz < 1.0) {
-            scene.remove(coins[i]); coins.splice(i, 1);
+            disposeObj(coins[i]); coins.splice(i, 1);
             coinStreak++;
             if (coinStreak >= 5) comboMult = 1 + Math.floor(coinStreak / 5);
             score += 50 * comboMult;
@@ -1075,7 +1123,7 @@
             comboVal.textContent   = 'x' + comboMult;
             playSound('coin');
           } else if (coins[i].position.z > 8) {
-            scene.remove(coins[i]); coins.splice(i, 1);
+            disposeObj(coins[i]); coins.splice(i, 1);
             coinStreak = 0; comboMult = 1;
             comboBox.style.display = 'none';
           }
@@ -1098,7 +1146,7 @@
         // scroll obstacles
         for (let i = obstacles.length - 1; i >= 0; i--) {
           obstacles[i].position.z += effectiveSpeed;
-          if (obstacles[i].position.z > 15) { scene.remove(obstacles[i]); obstacles.splice(i, 1); }
+          if (obstacles[i].position.z > 15) { disposeObj(obstacles[i]); obstacles.splice(i, 1); }
         }
 
         // lane lerp
@@ -1166,7 +1214,7 @@
           p.userData.life--;
           p.material.opacity = p.userData.life / 60;
           p.material.transparent = true;
-          if (p.userData.life <= 0) { scene.remove(p); particles.splice(i, 1); }
+          if (p.userData.life <= 0) { disposeObj(p); particles.splice(i, 1); }
         }
 
         // crash detection
@@ -1176,7 +1224,7 @@
             if (shieldActive) {
               shieldActive = false;
               removeShieldRing();
-              obstacles.forEach(o => scene.remove(o)); obstacles.length = 0;
+              obstacles.forEach(o => disposeObj(o)); obstacles.length = 0;
               camShakeX = (Math.random()-0.5)*0.5; camShakeY = (Math.random()-0.5)*0.3;
             } else {
               crashed = true; crashTimer = 60;
@@ -1195,11 +1243,9 @@
           if (crashTimer <= 0) endGame();
         }
       }
-
-      renderer.render(scene, camera);
     }
 
-    animate();
+    requestAnimationFrame(animate);
   </script>
 </body>
 </html>
