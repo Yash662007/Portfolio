@@ -57,12 +57,17 @@
 
     html {
       scroll-behavior: smooth;
+      overflow-x: hidden;
+      width: 100%;
     }
 
     body {
       font-family: var(--font-b);
       background: var(--white);
       color: var(--black);
+      overflow-x: hidden;
+      width: 100%;
+      position: relative;
     }
 
     /* NAV */
@@ -70,7 +75,7 @@
       position: sticky;
       top: 0;
       z-index: 1000;
-      background: rgba(255, 244, 161, 0.92);
+      background: rgba(255, 244, 161, 0.95);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-bottom: var(--border);
@@ -89,6 +94,39 @@
       letter-spacing: -1px;
       display: flex;
       align-items: center;
+      gap: 10px;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .nav-logo .yd-badge {
+      font-family: var(--font-h);
+      font-size: 1.15rem;
+      background: var(--black);
+      color: var(--mint);
+      border: 2px solid var(--black);
+      box-shadow: 3px 3px 0 var(--mint);
+      padding: 2px 8px;
+      display: inline-block;
+      line-height: 1.1;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .nav-logo:active .yd-badge {
+      transform: scale(0.92);
+      box-shadow: 1px 1px 0 var(--mint);
+    }
+
+    .nav-logo .port-tag {
+      font-family: var(--font-b);
+      font-size: 0.65rem;
+      font-weight: 700;
+      background: var(--black);
+      color: var(--white);
+      border: 1.5px solid var(--black);
+      box-shadow: 2px 2px 0 var(--black);
+      padding: 3px 8px;
+      letter-spacing: 2px;
     }
 
     .nav-links {
@@ -1628,9 +1666,38 @@
         flex-direction: column;
       }
 
+      .hero-left {
+        padding: 40px 20px;
+        border-right: none;
+        border-bottom: var(--border);
+      }
+
+      .hero-name {
+        font-size: clamp(2.4rem, 11vw, 3.8rem);
+        letter-spacing: -2px;
+      }
+
       .hero-right {
         width: 100%;
-        min-height: 400px;
+        min-height: 320px;
+        border-left: none;
+      }
+
+      .hero-badge {
+        top: 14px;
+        right: 14px;
+        padding: 8px 12px;
+      }
+
+      .hero-badge strong {
+        font-size: 1.3rem;
+      }
+
+      .hero-sticker {
+        bottom: 14px;
+        left: 14px;
+        padding: 6px 12px;
+        font-size: 0.65rem;
       }
 
       .about-grid {
@@ -1638,44 +1705,98 @@
       }
 
       section {
-        padding: 50px 24px;
+        padding: 44px 18px;
+        scroll-margin-top: 64px;
+      }
+
+      .section-title {
+        font-size: clamp(1.8rem, 8vw, 2.4rem);
+        margin-bottom: 24px;
       }
 
       nav {
-        padding: 0 20px;
+        padding: 0 16px;
+        height: 56px;
       }
 
       .nav-links {
         display: none;
       }
 
-      /* dock would overflow small screens — make it swipeable instead */
-      .floating-dock {
-        max-width: 94vw;
-        overflow-x: auto;
-        padding: 8px 10px 6px;
-        gap: 4px;
+      .edu-card {
+        padding: 24px 20px;
+        gap: 20px;
       }
 
-      .floating-dock::-webkit-scrollbar {
-        display: none;
+      .edu-right {
+        width: 100%;
+        justify-content: space-between;
       }
 
-      .dock-icon {
-        width: 34px;
-        height: 34px;
+      .edu-stat {
+        flex: 1;
+        padding: 12px 10px;
+        min-width: 0;
       }
 
-      .dock-emoji {
-        font-size: 1rem;
+      .edu-stat-val {
+        font-size: 1.4rem;
       }
 
-      .dock-label {
-        display: none;
+      .cert-carousel-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .cert-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .cert-track .cert-card,
+      .proj-track .proj-card {
+        flex: 0 0 min(270px, 82vw);
       }
 
       .contact-inner {
         flex-direction: column;
+        align-items: stretch;
+      }
+
+      .contact-text h2 {
+        font-size: clamp(2rem, 9vw, 2.6rem);
+      }
+
+      .contact-links {
+        gap: 8px;
+      }
+
+      .contact-links .btn,
+      .contact-links .dl-btn {
+        flex: 1 1 calc(50% - 8px);
+        text-align: center;
+        justify-content: center;
+        padding: 10px 12px;
+        font-size: 0.72rem;
+      }
+
+      .contact-form {
+        width: 100%;
+        padding: 20px 16px;
+      }
+
+      footer {
+        padding: 20px 18px;
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+      }
+
+      #backTop {
+        bottom: 24px;
+        right: 16px;
+        padding: 8px 12px;
       }
     }
 
@@ -1823,6 +1944,70 @@
     @media (max-width: 980px) {
       .testi-layout {
         grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .lb-box {
+        padding: 16px 14px 14px;
+        gap: 14px;
+      }
+
+      .lb-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding-bottom: 10px;
+      }
+
+      .lb-title {
+        font-size: 1.15rem;
+      }
+
+      .lb-tabs {
+        width: 100%;
+      }
+
+      .lb-tab {
+        flex: 1;
+        text-align: center;
+        padding: 8px 6px;
+        font-size: 0.64rem;
+      }
+
+      .lb-track {
+        gap: 12px;
+        padding: 4px 2px 12px;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .lb-card {
+        flex: 0 0 175px;
+        padding: 14px 12px 12px;
+      }
+
+      .lb-player {
+        font-size: 0.98rem;
+      }
+
+      .lb-score {
+        font-size: 1.18rem;
+      }
+
+      .lb-secret-bar {
+        font-size: 0.62rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 10px 12px;
+      }
+
+      .lb-your-rank {
+        font-size: 0.68rem;
+        padding: 8px 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
       }
     }
 
@@ -2220,8 +2405,8 @@
   <div id="cursor-ring"></div>
 
   <nav>
-    <div class="nav-logo" id="navLogo" style="cursor:pointer;user-select:none;">YD<span
-        style="font-family:var(--font-b);font-size:0.65rem;font-weight:700;background:var(--black);color:var(--mint);border:1.5px solid var(--black);box-shadow:2px 2px 0 var(--black);padding:2px 8px;margin-left:10px;letter-spacing:2px;">PORTFOLIO</span>
+    <div class="nav-logo" id="navLogo" style="cursor:pointer;" title="Triple tap to unlock Secret Arcade!">
+      <span class="yd-badge">YD</span><span class="port-tag">PORTFOLIO</span>
     </div>
     <div class="nav-links">
       <a href="#hero" class="nav-link-item active" data-nav="hero">🏠 Home</a>
@@ -3461,9 +3646,16 @@
       #arcade{position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;padding:20px;
         background:rgba(13,13,13,.82);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .3s}
       #arcade.open{opacity:1;pointer-events:auto}
-      #arcade .arc-box{position:relative;width:min(880px,100%);max-height:92vh;overflow:auto;background:#0D0D0D;color:#FAFAF5;
-        border:2.5px solid #FAFAF5;box-shadow:8px 8px 0 #B6F5D8;padding:34px 30px 26px;font-family:var(--font-b);
+      #arcade .arc-box{position:relative;width:min(880px,94vw);max-height:92vh;overflow:auto;background:#0D0D0D;color:#FAFAF5;
+        border:2.5px solid #FAFAF5;box-shadow:8px 8px 0 #B6F5D8;padding:26px 20px 20px;font-family:var(--font-b);
         transform:scale(.9) translateY(20px);transition:transform .4s cubic-bezier(.2,1.4,.4,1)}
+      @media(max-width:600px){
+        #arcade{padding:10px}
+        #arcade .arc-box{padding:18px 14px 16px;max-height:94vh}
+        #arcade h2{font-size:1.8rem}
+        #arcade .arc-sub{margin-bottom:14px;font-size:0.75rem}
+        #arcade .arc-grid{gap:14px}
+      }
       #arcade.open .arc-box{transform:none}
       #arcade .arc-box::before{content:'';position:absolute;inset:0;pointer-events:none;
         background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px)}
