@@ -467,6 +467,10 @@
   <!-- POPUP TEXT -->
   <div id="popupText"></div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <!-- post-processing for the neon glow (bloom). If these fail to load, the game still runs without glow. -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
@@ -1151,20 +1155,10 @@
       if (finalScore <= 0) return;
       const name = (playerNameInput.value.trim() || 'Anonymous').slice(0, 18);
       localStorage.setItem('portfolioPlayerName', name);
-      const key = 'neonRunLeaderboard_v2';
-      let list = [];
-      try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { list = []; }
-      if (!Array.isArray(list)) list = [];
-      const entry = {
-        id: Date.now() + '-' + Math.random().toString(36).slice(2, 7),
-        name,
-        score: finalScore,
-        meta: distMeters + 'm'
-      };
-      list.push(entry);
-      list.sort((a, b) => b.score - a.score);
-      localStorage.setItem(key, JSON.stringify(list));
-      localStorage.setItem('neonRunLastEntry', JSON.stringify(entry));
+      const meta = distMeters + 'm';
+      if (window.LeaderboardService) {
+        window.LeaderboardService.submitScore('neon', name, finalScore, meta);
+      }
     }
     let   highScore        = parseInt(localStorage.getItem('neonRunHS') || '0');
     let   nextNitroScore   = 1000;

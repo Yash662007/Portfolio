@@ -540,6 +540,10 @@
         <div class="hint-line">press <span>ENTER</span> or <span>SPACE</span> to reboot</div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
         const wordList = [
             "algorithm", "bandwidth", "cyberpunk", "database", "encryption", 
@@ -696,20 +700,10 @@
             if (finalScore <= 0) return;
             const name = (playerNameInput.value.trim() || 'Anonymous').slice(0, 18);
             localStorage.setItem('portfolioPlayerName', name);
-            const key = 'cyberTypeLeaderboard_v2';
-            let list = [];
-            try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { list = []; }
-            if (!Array.isArray(list)) list = [];
-            const entry = {
-                id: Date.now() + '-' + Math.random().toString(36).slice(2, 7),
-                name,
-                score: finalScore,
-                meta: wpm + ' WPM'
-            };
-            list.push(entry);
-            list.sort((a, b) => b.score - a.score);
-            localStorage.setItem(key, JSON.stringify(list));
-            localStorage.setItem('cyberTypeLastEntry', JSON.stringify(entry));
+            const meta = wpm + ' WPM';
+            if (window.LeaderboardService) {
+                window.LeaderboardService.submitScore('cyber', name, finalScore, meta);
+            }
         }
 
         // ── MOBILE VIRTUAL KEYBOARD FIX (Item 14) ──

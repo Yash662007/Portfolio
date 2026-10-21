@@ -2584,6 +2584,10 @@
   <button id="backTop" aria-label="Back to top">↑ TOP</button>
   <div id="toast" role="status" aria-live="polite"></div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script>
     const projects = [
       {
@@ -3079,39 +3083,19 @@
     });
 
     // ── ARCADE TOP 10 LEADERBOARD (real user scores + user's own rank if outside Top 10) ──
-    const LB_KEYS = {
-      neon: 'neonRunLeaderboard_v2',
-      cyber: 'cyberTypeLeaderboard_v2'
-    };
-    const LB_LAST_KEYS = {
-      neon: 'neonRunLastEntry',
-      cyber: 'cyberTypeLastEntry'
-    };
-
-    function getFullLeaderboard(game) {
-      const key = LB_KEYS[game];
-      let list = [];
-      try {
-        list = JSON.parse(localStorage.getItem(key) || '[]');
-      } catch (e) { list = []; }
-      if (!Array.isArray(list)) list = [];
-      return list.sort((a, b) => b.score - a.score);
-    }
-
     const lbTrack = document.getElementById('lbTrack');
     const lbYourRank = document.getElementById('lbYourRank');
     let activeLbGame = 'neon';
+    let currentUnsubscribe = null;
 
-    function renderLeaderboard(game) {
+    function renderLeaderboardView(game, top10, fullList) {
       if (!lbTrack) return;
-      activeLbGame = game;
-      const fullList = getFullLeaderboard(game);
-      const top10 = fullList.slice(0, 10);
       const medals = ['🥇', '🥈', '🥉'];
+      const lastKey = game === 'neon' ? 'neonRunLastEntry' : 'cyberTypeLastEntry';
       let lastEntry = null;
-      try { lastEntry = JSON.parse(localStorage.getItem(LB_LAST_KEYS[game]) || 'null'); } catch (e) {}
+      try { lastEntry = JSON.parse(localStorage.getItem(lastKey) || 'null'); } catch (e) {}
 
-      if (top10.length === 0) {
+      if (!top10 || top10.length === 0) {
         lbTrack.innerHTML = `
           <div class="lb-empty">
             <strong>No scores recorded yet!</strong>
@@ -3120,12 +3104,13 @@
       } else {
         lbTrack.innerHTML = top10.map((item, i) => {
           const rankCls = i < 3 ? `rank-${i + 1}` : '';
-          const isYou = lastEntry && item.id && item.id === lastEntry.id ? 'is-you' : '';
+          const isYou = (lastEntry && item.id && item.id === lastEntry.id) ||
+                        (lastEntry && item.timestamp && Math.abs(item.timestamp - lastEntry.timestamp) < 2000 && item.score === lastEntry.score);
           const badge = medals[i] || `#${i + 1}`;
           const safeName = String(item.name || 'Anonymous').replace(/[<>&"']/g, '');
           const safeMeta = String(item.meta || (game === 'neon' ? 'RUNNER' : 'NETRUNNER')).replace(/[<>&"']/g, '');
           return `
-            <div class="lb-card ${rankCls} ${isYou}">
+            <div class="lb-card ${rankCls} ${isYou ? 'is-you' : ''}">
               <div class="lb-rank"><span class="lb-rank-pill">RANK #${i + 1}</span><span>${badge}</span></div>
               <div class="lb-player" title="${safeName}">${safeName}${isYou ? ' (YOU)' : ''}</div>
               <div class="lb-score-row">
@@ -3162,15 +3147,28 @@
       }
     }
 
+    function switchLeaderboard(game) {
+      activeLbGame = game;
+      if (currentUnsubscribe) {
+        currentUnsubscribe();
+        currentUnsubscribe = null;
+      }
+      if (window.LeaderboardService) {
+        currentUnsubscribe = window.LeaderboardService.subscribeTopScores(game, 10, (top, all) => {
+          renderLeaderboardView(game, top, all);
+        });
+      }
+    }
+
     document.querySelectorAll('.lb-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        renderLeaderboard(tab.dataset.game);
+        switchLeaderboard(tab.dataset.game);
       });
     });
-    renderLeaderboard('neon');
-    window.addEventListener('storage', () => renderLeaderboard(activeLbGame));
+    switchLeaderboard('neon');
+    window.addEventListener('storage', () => switchLeaderboard(activeLbGame));
 
     // ── CONTACT FORM ──
     const FORMSPREE_URL = 'https://formspree.io/f/myezyyqg';
