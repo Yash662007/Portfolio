@@ -1812,11 +1812,271 @@
       outline-offset: 3px;
     }
 
-    /* ── TESTIMONIALS ── */
-    .testi-grid {
+    /* ── TESTIMONIALS & ARCADE LEADERBOARD ── */
+    .testi-layout {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 32px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 980px) {
+      .testi-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .testi-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .lb-box {
+      border: var(--border);
+      box-shadow: var(--shadow);
+      background: var(--white);
+      padding: 26px 28px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .lb-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding-bottom: 14px;
+      border-bottom: 2px dashed rgba(13, 13, 13, 0.2);
+    }
+
+    .lb-title {
+      font-family: var(--font-h);
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lb-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .lb-tab {
+      font-family: var(--font-b);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      border: 2px solid var(--black);
+      box-shadow: 3px 3px 0 var(--black);
+      background: var(--white);
+      color: var(--black);
+      cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
+    }
+
+    .lb-tab:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 var(--black);
+    }
+
+    .lb-tab.active[data-game="neon"] {
+      background: var(--mint);
+    }
+
+    .lb-tab.active[data-game="cyber"] {
+      background: var(--lavender);
+    }
+
+    .lb-track {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      padding: 8px 4px 16px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--black) var(--butter);
+    }
+
+    .lb-track::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .lb-track::-webkit-scrollbar-track {
+      background: var(--butter);
+      border: 1.5px solid var(--black);
+    }
+
+    .lb-track::-webkit-scrollbar-thumb {
+      background: var(--black);
+    }
+
+    .lb-card {
+      flex: 0 0 210px;
+      scroll-snap-align: start;
+      border: 2.5px solid var(--black);
+      box-shadow: 4px 4px 0 var(--black);
+      background: var(--white);
+      padding: 18px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.12s, box-shadow 0.12s;
+      position: relative;
+    }
+
+    .lb-card:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 7px 7px 0 var(--black);
+    }
+
+    .lb-card.rank-1 { background: var(--butter); }
+    .lb-card.rank-2 { background: var(--mint); }
+    .lb-card.rank-3 { background: var(--peach); }
+    .lb-card.is-you {
+      outline: 2.5px dashed var(--black);
+      outline-offset: -6px;
+    }
+
+    .lb-rank {
+      font-family: var(--font-h);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .lb-rank-pill {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-b);
+      font-size: 0.62rem;
+      padding: 2px 8px;
+      letter-spacing: 1px;
+    }
+
+    .lb-player {
+      font-family: var(--font-h);
+      font-size: 1.1rem;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lb-score-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1.5px solid rgba(13, 13, 13, 0.18);
+    }
+
+    .lb-score {
+      font-family: var(--font-h);
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--black);
+      letter-spacing: -0.5px;
+    }
+
+    .lb-meta {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: var(--white);
+      border: 1.5px solid var(--black);
+      padding: 2px 7px;
+      color: var(--black);
+    }
+
+    .lb-empty {
+      width: 100%;
+      border: 2px dashed var(--black);
+      background: rgba(255, 244, 161, 0.35);
+      padding: 26px 20px;
+      text-align: center;
+      font-size: 0.78rem;
+      line-height: 1.7;
+      color: #333;
+    }
+
+    .lb-empty strong {
+      font-family: var(--font-h);
+      font-size: 1.05rem;
+      display: block;
+      margin-bottom: 4px;
+      color: var(--black);
+    }
+
+    .lb-your-rank {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--pink);
+      border: 2px solid var(--black);
+      box-shadow: 3px 3px 0 var(--black);
+      padding: 10px 16px;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .lb-your-rank.show {
+      display: flex;
+    }
+
+    .lb-secret-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: var(--black);
+      color: var(--white);
+      border: 2px solid var(--black);
+      padding: 12px 16px;
+      font-size: 0.68rem;
+      letter-spacing: 0.5px;
+      line-height: 1.6;
+    }
+
+    .lb-secret-bar kbd {
+      display: inline-block;
+      font-family: var(--font-b);
+      font-size: 0.64rem;
+      font-weight: 700;
+      background: var(--mint);
+      color: var(--black);
+      border: 1.5px solid var(--black);
+      padding: 1px 6px;
+      margin: 0 2px;
+    }
+
+    .lb-secret-bar .yd-pill {
+      display: inline-block;
+      font-family: var(--font-h);
+      font-weight: 800;
+      background: var(--butter);
+      color: var(--black);
+      padding: 1px 7px;
+      margin: 0 2px;
     }
 
     .testi-card {
@@ -2170,9 +2430,26 @@
   </section>
 
   <section id="testimonials">
-    <div class="section-label">// KIND WORDS</div>
+    <div class="section-label">// KIND WORDS & HIGH SCORES</div>
     <div class="section-title">People <span>Say</span></div>
-    <div class="testi-grid" id="testiGrid"></div>
+    <div class="testi-layout">
+      <div class="testi-grid" id="testiGrid"></div>
+      <div class="lb-box">
+        <div class="lb-head">
+          <div class="lb-title">🏆 Top 10 Leaderboard</div>
+          <div class="lb-tabs">
+            <button class="lb-tab active" data-game="neon">🏃 Neon Run</button>
+            <button class="lb-tab" data-game="cyber">⌨️ Cyber-Type</button>
+          </div>
+        </div>
+        <div class="lb-track" id="lbTrack"></div>
+        <div class="lb-your-rank" id="lbYourRank"></div>
+        <div class="lb-secret-bar">
+          <span>🕹️ <b>PC:</b> Konami <kbd>↑</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><kbd>←</kbd></span>
+          <span>📱 <b>Mobile:</b> 3× tap <span class="yd-pill">YD</span> (top-left)</span>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section id="certificates">
@@ -2801,6 +3078,100 @@
         </div>`;
     });
 
+    // ── ARCADE TOP 10 LEADERBOARD (real user scores + user's own rank if outside Top 10) ──
+    const LB_KEYS = {
+      neon: 'neonRunLeaderboard_v2',
+      cyber: 'cyberTypeLeaderboard_v2'
+    };
+    const LB_LAST_KEYS = {
+      neon: 'neonRunLastEntry',
+      cyber: 'cyberTypeLastEntry'
+    };
+
+    function getFullLeaderboard(game) {
+      const key = LB_KEYS[game];
+      let list = [];
+      try {
+        list = JSON.parse(localStorage.getItem(key) || '[]');
+      } catch (e) { list = []; }
+      if (!Array.isArray(list)) list = [];
+      return list.sort((a, b) => b.score - a.score);
+    }
+
+    const lbTrack = document.getElementById('lbTrack');
+    const lbYourRank = document.getElementById('lbYourRank');
+    let activeLbGame = 'neon';
+
+    function renderLeaderboard(game) {
+      if (!lbTrack) return;
+      activeLbGame = game;
+      const fullList = getFullLeaderboard(game);
+      const top10 = fullList.slice(0, 10);
+      const medals = ['🥇', '🥈', '🥉'];
+      let lastEntry = null;
+      try { lastEntry = JSON.parse(localStorage.getItem(LB_LAST_KEYS[game]) || 'null'); } catch (e) {}
+
+      if (top10.length === 0) {
+        lbTrack.innerHTML = `
+          <div class="lb-empty">
+            <strong>No scores recorded yet!</strong>
+            Unlock the Secret Arcade below and be the first real player on the ${game === 'neon' ? 'Neon Run' : 'Cyber-Type'} leaderboard.
+          </div>`;
+      } else {
+        lbTrack.innerHTML = top10.map((item, i) => {
+          const rankCls = i < 3 ? `rank-${i + 1}` : '';
+          const isYou = lastEntry && item.id && item.id === lastEntry.id ? 'is-you' : '';
+          const badge = medals[i] || `#${i + 1}`;
+          const safeName = String(item.name || 'Anonymous').replace(/[<>&"']/g, '');
+          const safeMeta = String(item.meta || (game === 'neon' ? 'RUNNER' : 'NETRUNNER')).replace(/[<>&"']/g, '');
+          return `
+            <div class="lb-card ${rankCls} ${isYou}">
+              <div class="lb-rank"><span class="lb-rank-pill">RANK #${i + 1}</span><span>${badge}</span></div>
+              <div class="lb-player" title="${safeName}">${safeName}${isYou ? ' (YOU)' : ''}</div>
+              <div class="lb-score-row">
+                <div class="lb-score">${Number(item.score || 0).toLocaleString()}</div>
+                <div class="lb-meta">${safeMeta}</div>
+              </div>
+            </div>`;
+        }).join('');
+      }
+      lbTrack.scrollLeft = 0;
+
+      // If the user played and their best/latest run is outside the Top 10, show their own rank below
+      if (lbYourRank) {
+        const currentPlayer = (localStorage.getItem('portfolioPlayerName') || '').trim();
+        let userIdx = -1;
+        if (lastEntry && lastEntry.id) {
+          userIdx = fullList.findIndex(item => item.id === lastEntry.id);
+        }
+        if (userIdx === -1 && currentPlayer) {
+          userIdx = fullList.findIndex(item => String(item.name).toLowerCase() === currentPlayer.toLowerCase());
+        }
+        if (userIdx >= 10) {
+          const u = fullList[userIdx];
+          const safeName = String(u.name || 'Anonymous').replace(/[<>&"']/g, '');
+          const safeMeta = String(u.meta || '').replace(/[<>&"']/g, '');
+          lbYourRank.innerHTML = `
+            <span>👤 YOUR RANK: <b>#${userIdx + 1}</b> — ${safeName}</span>
+            <span><b>${Number(u.score || 0).toLocaleString()}</b> (${safeMeta})</span>`;
+          lbYourRank.classList.add('show');
+        } else {
+          lbYourRank.classList.remove('show');
+          lbYourRank.innerHTML = '';
+        }
+      }
+    }
+
+    document.querySelectorAll('.lb-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderLeaderboard(tab.dataset.game);
+      });
+    });
+    renderLeaderboard('neon');
+    window.addEventListener('storage', () => renderLeaderboard(activeLbGame));
+
     // ── CONTACT FORM ──
     const FORMSPREE_URL = 'https://formspree.io/f/myezyyqg';
     const contactForm = document.getElementById('contactForm');
@@ -3217,7 +3588,7 @@
 
     // ── SCROLL REVEAL (sections/cards gently float up while scrolling) ──
     const revealTargets = document.querySelectorAll(
-      '.section-title, .section-label, .about-card, .skill-tag, .edu-card, .exp-card, .proj-card, .testi-card, .cert-card, .letter-card, .contact-inner, .contact-form'
+      '.section-title, .section-label, .about-card, .skill-tag, .edu-card, .exp-card, .proj-card, .testi-card, .lb-box, .cert-card, .letter-card, .contact-inner, .contact-form'
     );
     revealTargets.forEach(el => el.classList.add('reveal'));
     const revealObserver = new IntersectionObserver(entries => {

@@ -52,11 +52,13 @@
 
         #hud {
             position: absolute;
-            top: 20px;
+            top: 52px;
             left: 20px;
             right: 20px;
             display: flex;
             justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
             z-index: 10;
             pointer-events: none;
         }
@@ -65,25 +67,143 @@
             background: var(--glass-bg);
             backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
-            padding: 15px 25px;
+            padding: 10px 18px;
             border-radius: 8px;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
             text-transform: uppercase;
+            min-width: 110px;
         }
 
         .hud-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: var(--neon-blue);
             letter-spacing: 2px;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .hud-value {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             font-weight: 700;
             color: #fff;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .bar-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 100%;
+            background: var(--neon-pink);
+            box-shadow: 0 0 8px var(--neon-pink);
+            transition: width 0.25s ease, background 0.25s ease;
+        }
+
+        #emp-panel {
+            border-color: rgba(255, 215, 0, 0.4);
+            pointer-events: auto;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+        }
+        #emp-panel.ready {
+            border-color: #ffd700;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+            animation: pulse 0.6s ease-in-out infinite alternate;
+        }
+        #emp-bar {
+            background: #ffd700;
+            box-shadow: 0 0 8px #ffd700;
+            width: 0%;
+        }
+
+        #back-btn {
+            position: absolute;
+            top: 14px;
+            left: 20px;
+            z-index: 150;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--neon-blue);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        #back-btn:hover {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .word-entity.type-emp {
+            color: #ffd700;
+            text-shadow: 0 0 12px #ffd700;
+        }
+        .word-entity.type-slow {
+            color: #00ffff;
+            text-shadow: 0 0 12px #00ffff;
+        }
+        .word-entity.type-heal {
+            color: #00ff88;
+            text-shadow: 0 0 12px #00ff88;
+        }
+        .word-entity.type-boss {
+            color: #ff2255;
+            font-size: 1.85rem;
+            text-shadow: 0 0 16px #ff0044, 0 0 30px #ff0044;
+            border: 1px solid rgba(255, 34, 85, 0.6);
+            padding: 2px 10px;
+            border-radius: 4px;
+            background: rgba(40, 0, 15, 0.75);
+        }
+        .word-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-right: 6px;
+            vertical-align: middle;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid currentColor;
+        }
+
+        .slow-overlay {
+            position: absolute;
+            inset: 0;
+            box-shadow: inset 0 0 80px rgba(0, 255, 255, 0.35);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 4;
+            transition: opacity 0.3s;
+        }
+        .slow-overlay.active { opacity: 1; }
+
+        .hint-line {
+            margin-top: 14px;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.45);
+            letter-spacing: 1.5px;
+            text-align: center;
+        }
+        .hint-line span {
+            display: inline-block;
+            border: 1px solid rgba(0, 255, 255, 0.35);
+            color: var(--neon-blue);
+            padding: 2px 7px;
+            border-radius: 4px;
+            margin: 0 3px;
+            font-size: 0.7rem;
         }
 
         #game-area {
@@ -246,17 +366,16 @@
 
         #mute-btn {
             position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            top: 12px;
+            right: 20px;
             z-index: 150;
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             color: var(--neon-blue);
-            font-size: 1.2rem;
-            width: 46px;
-            height: 46px;
-            border-radius: 8px;
+            font-size: 1.1rem;
+            width: 38px;
+            height: 36px;
+            border-radius: 6px;
             cursor: pointer;
         }
         #mute-btn:hover { box-shadow: 0 0 20px rgba(0,255,255,0.4); }
@@ -278,17 +397,84 @@
             margin-top: 10px;
             animation: pulse 0.4s infinite alternate;
         }
-        @media (max-width: 600px) {
+        /* ── PORTFOLIO-STYLE PLAYER NAME BOX ── */
+        .name-card {
+            background: #FAFAF5;
+            color: #0D0D0D;
+            border: 2.5px solid #0D0D0D;
+            box-shadow: 5px 5px 0 #CABFFF;
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: min(350px, 88vw);
+            margin-bottom: 22px;
+        }
+        .name-card label {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #0D0D0D;
+        }
+        .name-row {
+            display: flex;
+            gap: 8px;
+        }
+        .name-input {
+            flex: 1;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 8px 12px;
+            border: 2px solid #0D0D0D;
+            background: #FAFAF5;
+            color: #0D0D0D;
+            outline: none;
+            min-width: 0;
+        }
+        .name-input:focus {
+            background: #FFF4A1;
+        }
+        .anon-btn {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 8px 12px;
+            border: 2px solid #0D0D0D;
+            box-shadow: 3px 3px 0 #0D0D0D;
+            background: #FFB3CB;
+            color: #0D0D0D;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .anon-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 #0D0D0D;
+        }
+        .anon-btn.active {
+            background: #0D0D0D;
+            color: #B6F5D8;
+        }
+        @media (max-width: 720px) {
             .glitch-title { font-size: 2.4rem; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            #typing-input { width: 85vw; font-size: 1.5rem; }
-            .hud-panel { padding: 8px 12px; }
-            .hud-value { font-size: 1.1rem; }
-            #mute-btn { top: auto; bottom: 110px; }
+            #typing-input { width: 88vw; font-size: 1.35rem; bottom: 16px; padding: 8px 18px; }
+            #hud { top: 48px; left: 10px; right: 10px; gap: 6px; }
+            .hud-panel { padding: 6px 10px; min-width: 72px; }
+            .hud-title { font-size: 0.58rem; }
+            .hud-value { font-size: 1rem; }
         }
     </style>
 </head>
 <body>
+
+    <a href="index.html" id="back-btn">← PORTFOLIO</a>
+    <button id="mute-btn" aria-label="Toggle sound">🔊</button>
 
     <div id="hud">
         <div class="hud-panel">
@@ -299,25 +485,44 @@
             <div class="hud-title">MULTIPLIER</div>
             <div class="hud-value" id="multiplier">x1</div>
         </div>
+        <div class="hud-panel">
+            <div class="hud-title">LIVE WPM / ACC</div>
+            <div class="hud-value"><span id="live-wpm">0</span> <small style="font-size:0.75rem;color:var(--neon-blue);" id="live-acc">100%</small></div>
+        </div>
+        <div class="hud-panel" id="emp-panel" title="Press SPACE or ENTER when 100% charged">
+            <div class="hud-title" style="color: #ffd700;">⚡ EMP [SPACE]</div>
+            <div class="hud-value" id="emp-val" style="color: #ffd700;">0%</div>
+            <div class="bar-track"><div class="bar-fill" id="emp-bar"></div></div>
+        </div>
         <div class="hud-panel" style="border-color: rgba(255,0,255,0.4);">
             <div class="hud-title" style="color: var(--neon-pink);">SYSTEM INTEGRITY</div>
             <div class="hud-value" id="lives">100%</div>
+            <div class="bar-track"><div class="bar-fill" id="lives-bar"></div></div>
         </div>
     </div>
 
     <div class="danger-overlay" id="danger"></div>
+    <div class="slow-overlay" id="slow-overlay"></div>
     <div id="game-area"></div>
     
     <input type="text" id="typing-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus disabled>
-
-    <button id="mute-btn" aria-label="Toggle sound">🔊</button>
 
     <!-- Start Screen -->
     <div class="screen" id="start-screen">
         <h1 class="glitch-title">NETRUNNER</h1>
         <p style="margin-bottom: 14px; color: var(--neon-blue); letter-spacing: 2px;">Intercept the incoming data packets.</p>
-        <div class="best-line" id="start-best">HIGH SCORE: 0</div>
+        <div class="best-line" id="start-best" style="margin-bottom: 16px;">HIGH SCORE: 0</div>
+        <div class="name-card">
+            <label for="player-name-input">// PLAYER NAME (FOR LEADERBOARD)</label>
+            <div class="name-row">
+                <input type="text" id="player-name-input" class="name-input" maxlength="18" placeholder="Enter your name..." autocomplete="off">
+                <button type="button" id="anon-btn" class="anon-btn">🕶 Anonymous</button>
+            </div>
+        </div>
         <button class="cyber-btn" id="start-btn">INITIALIZE CONNECTION</button>
+        <div class="hint-line">
+            press <span>ENTER</span> or <span>SPACE</span> to start &nbsp;·&nbsp; <span>TAB</span> / <span>ESC</span> switch target &nbsp;·&nbsp; <span>SPACE</span> fire EMP
+        </div>
     </div>
 
     <!-- Game Over Screen -->
@@ -332,6 +537,7 @@
             <div class="hud-panel stat-box"><div class="hud-title">HIGH SCORE</div><div class="hud-value" id="stat-best">0</div></div>
         </div>
         <button class="cyber-btn" id="restart-btn" style="margin-top: 20px;">REBOOT SYSTEM</button>
+        <div class="hint-line">press <span>ENTER</span> or <span>SPACE</span> to reboot</div>
     </div>
 
     <script>
@@ -346,6 +552,12 @@
             "payload", "spoofing", "vulnerability", "patch", "logic", "binary"
         ];
 
+        const bossWordList = [
+            "sudo-rm-rf-system", "ddos-mainframe-core", "brute-force-cipher",
+            "zero-day-injection", "neural-net-override", "quantum-key-breach",
+            "rootkit-escalation", "kernel-panic-dump"
+        ];
+
         let words = [];
         let score = 0;
         let lives = 100;
@@ -355,6 +567,12 @@
         let difficulty = 1;
         let isPlaying = false;
         let lastTime = 0;
+
+        // Power-ups & EMP
+        let empCharge = 0; // 0..15 words
+        const EMP_MAX = 15;
+        let slowMoUntil = 0;
+        let wordsSpawned = 0;
 
         // Stats
         let startTime = 0;
@@ -368,9 +586,14 @@
         let highScore = parseInt(localStorage.getItem(BEST_KEY) || '0', 10);
         document.getElementById('start-best').textContent = 'HIGH SCORE: ' + highScore;
 
-        // ── SOUND (WebAudio synth, no files needed) ──
+        // ── SOUND & SYNTHWAVE BEAT (WebAudio synth, no files needed) ──
         let muted = localStorage.getItem('cybertype_muted') === '1';
         let actx = null;
+        let bgmTimer = null;
+        let bgmStep = 0;
+        const BASS_SEQ = [55, 55, 110, 55, 65.41, 65.41, 130.81, 65.41, 73.42, 73.42, 146.83, 73.42, 61.74, 61.74, 123.47, 61.74];
+        const ARP_SEQ  = [220, 261.63, 329.63, 440, 329.63, 261.63, 246.94, 329.63];
+
         const muteBtn = document.getElementById('mute-btn');
         muteBtn.textContent = muted ? '🔇' : '🔊';
         muteBtn.addEventListener('click', (e) => {
@@ -378,11 +601,14 @@
             muted = !muted;
             localStorage.setItem('cybertype_muted', muted ? '1' : '0');
             muteBtn.textContent = muted ? '🔇' : '🔊';
+            if (muted) stopMusic();
+            else if (isPlaying) startMusic();
             if (isPlaying) inputField.focus();
         });
         function tone(freq, dur, type = 'square', vol = 0.05, slideTo = null, delay = 0) {
             if (muted) return;
             if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+            if (actx.state === 'suspended') actx.resume();
             const t = actx.currentTime + delay;
             const o = actx.createOscillator();
             const g = actx.createGain();
@@ -395,11 +621,39 @@
             o.start(t);
             o.stop(t + dur);
         }
+        function startMusic() {
+            stopMusic();
+            if (muted || !isPlaying) return;
+            if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+            if (actx.state === 'suspended') actx.resume();
+            function tickBeat() {
+                if (!isPlaying || muted) return;
+                const inDanger = words.some(w => w.el.classList.contains('near'));
+                const bassFreq = BASS_SEQ[bgmStep % BASS_SEQ.length];
+                tone(bassFreq, 0.14, 'sawtooth', 0.03, bassFreq * 0.5);
+                if (bgmStep % 4 === 0) tone(130, 0.12, 'sine', 0.07, 35); // kick
+                if (bgmStep % 2 === 1 || inDanger) {
+                    const arpFreq = ARP_SEQ[bgmStep % ARP_SEQ.length] * (inDanger ? 1.5 : 1);
+                    tone(arpFreq, 0.08, 'triangle', 0.02);
+                }
+                bgmStep++;
+                const stepMs = Math.max(95, (inDanger ? 130 : 165) - difficulty * 4);
+                bgmTimer = setTimeout(tickBeat, stepMs);
+            }
+            tickBeat();
+        }
+        function stopMusic() {
+            clearTimeout(bgmTimer);
+            bgmTimer = null;
+        }
         const sfx = {
             key: () => tone(900 + Math.random() * 200, 0.04, 'square', 0.025),
             miss: () => tone(140, 0.12, 'sawtooth', 0.05),
             boom: (m) => { tone(220 * Math.min(m, 4), 0.25, 'triangle', 0.08, 880 * Math.min(m, 4)); tone(80, 0.2, 'sawtooth', 0.05, 30); },
             damage: () => { tone(300, 0.35, 'sawtooth', 0.09, 60); },
+            emp: () => { tone(600, 0.5, 'sawtooth', 0.1, 40); tone(1200, 0.35, 'square', 0.06, 200); },
+            heal: () => [440, 554, 659, 880].forEach((f, i) => tone(f, 0.1, 'triangle', 0.05, null, i * 0.06)),
+            slow: () => tone(500, 0.4, 'sine', 0.07, 160),
             levelUp: () => [523, 659, 784].forEach((f, i) => tone(f, 0.12, 'square', 0.05, null, i * 0.08)),
             over: () => [440, 330, 220, 110].forEach((f, i) => tone(f, 0.3, 'sawtooth', 0.07, null, i * 0.18))
         };
@@ -408,42 +662,124 @@
         const inputField = document.getElementById('typing-input');
         const scoreEl = document.getElementById('score');
         const livesEl = document.getElementById('lives');
+        const livesBarEl = document.getElementById('lives-bar');
         const multiplierEl = document.getElementById('multiplier');
+        const liveWpmEl = document.getElementById('live-wpm');
+        const liveAccEl = document.getElementById('live-acc');
+        const empPanelEl = document.getElementById('emp-panel');
+        const empValEl = document.getElementById('emp-val');
+        const empBarEl = document.getElementById('emp-bar');
         const dangerEl = document.getElementById('danger');
+        const slowOverlayEl = document.getElementById('slow-overlay');
         
         const startScreen = document.getElementById('start-screen');
         const gameOverScreen = document.getElementById('game-over-screen');
+        const playerNameInput = document.getElementById('player-name-input');
+        const anonBtn = document.getElementById('anon-btn');
+        let savedPlayerName = localStorage.getItem('portfolioPlayerName') || '';
+        if (savedPlayerName) playerNameInput.value = savedPlayerName;
+        if (savedPlayerName === 'Anonymous') anonBtn.classList.add('active');
+
+        anonBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playerNameInput.value = 'Anonymous';
+            localStorage.setItem('portfolioPlayerName', 'Anonymous');
+            anonBtn.classList.add('active');
+        });
+        playerNameInput.addEventListener('input', () => {
+            const val = playerNameInput.value.trim();
+            anonBtn.classList.toggle('active', val.toLowerCase() === 'anonymous');
+            localStorage.setItem('portfolioPlayerName', val || 'Anonymous');
+        });
+
+        function saveCyberLeaderboard(finalScore, wpm) {
+            if (finalScore <= 0) return;
+            const name = (playerNameInput.value.trim() || 'Anonymous').slice(0, 18);
+            localStorage.setItem('portfolioPlayerName', name);
+            const key = 'cyberTypeLeaderboard_v2';
+            let list = [];
+            try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { list = []; }
+            if (!Array.isArray(list)) list = [];
+            const entry = {
+                id: Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+                name,
+                score: finalScore,
+                meta: wpm + ' WPM'
+            };
+            list.push(entry);
+            list.sort((a, b) => b.score - a.score);
+            localStorage.setItem(key, JSON.stringify(list));
+            localStorage.setItem('cyberTypeLastEntry', JSON.stringify(entry));
+        }
+
+        // ── MOBILE VIRTUAL KEYBOARD FIX (Item 14) ──
+        let playHeight = window.innerHeight;
+        function updateViewportLayout() {
+            const vv = window.visualViewport;
+            playHeight = vv ? vv.height : window.innerHeight;
+            const kbOffset = Math.max(0, window.innerHeight - playHeight - (vv ? vv.offsetTop : 0));
+            inputField.style.bottom = (kbOffset + (window.innerWidth <= 720 ? 14 : 36)) + 'px';
+        }
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', updateViewportLayout);
+            window.visualViewport.addEventListener('scroll', updateViewportLayout);
+        }
+        window.addEventListener('resize', updateViewportLayout);
+        updateViewportLayout();
+
+        const TYPE_BADGES = {
+            emp:  '⚡EMP',
+            slow: '❄SLOW',
+            heal: '✚PATCH',
+            boss: '☠BOSS'
+        };
 
         class WordEntity {
-            constructor(text, speed) {
+            constructor(text, speed, kind = 'normal') {
                 this.text = text;
                 this.originalText = text;
                 this.typed = "";
                 this.speed = speed;
+                this.kind = kind;
                 
                 this.el = document.createElement('div');
-                this.el.className = 'word-entity';
+                this.el.className = 'word-entity' + (kind !== 'normal' ? ` type-${kind}` : '');
                 this.updateHTML();
                 
                 this.y = -50;
                 this.el.style.top = this.y + 'px';
                 gameArea.appendChild(this.el);
 
-                // Spawn randomly on the x-axis, fully on-screen (measured after render)
+                // Prevent horizontal overlap with recently spawned words near the top (Item 15)
                 const w = this.el.offsetWidth;
-                this.x = 20 + Math.random() * Math.max(0, window.innerWidth - w - 40);
+                const maxX = Math.max(20, window.innerWidth - w - 40);
+                let chosenX = 20 + Math.random() * maxX;
+                for (let attempt = 0; attempt < 10; attempt++) {
+                    const candidate = 20 + Math.random() * maxX;
+                    const overlaps = words.some(other =>
+                        other !== this &&
+                        other.y < 110 &&
+                        candidate < other.x + other.el.offsetWidth + 24 &&
+                        candidate + w + 24 > other.x
+                    );
+                    if (!overlaps) { chosenX = candidate; break; }
+                }
+                this.x = chosenX;
                 this.el.style.left = this.x + 'px';
             }
 
             updateHTML() {
-                this.el.innerHTML = `<span class="typed">${this.typed}</span>${this.text.substring(this.typed.length)}`;
+                const badge = TYPE_BADGES[this.kind] ? `<span class="word-badge">${TYPE_BADGES[this.kind]}</span>` : '';
+                this.el.innerHTML = `${badge}<span class="typed">${this.typed}</span>${this.text.substring(this.typed.length)}`;
             }
 
             move(dt) {
-                this.y += this.speed * dt;
+                const factor = performance.now() < slowMoUntil ? 0.42 : 1;
+                this.y += this.speed * dt * factor;
                 this.el.style.top = this.y + 'px';
-                this.el.classList.toggle('near', this.y > window.innerHeight * 0.7);
-                return this.y > window.innerHeight;
+                const bottomLimit = playHeight - 75;
+                this.el.classList.toggle('near', this.y > bottomLimit * 0.72);
+                return this.y > bottomLimit;
             }
             
             destroy() {
@@ -454,29 +790,107 @@
 
         function spawnWord() {
             if (!isPlaying) return;
-            const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
-            const speed = 0.05 * difficulty + Math.random() * 0.05;
-            words.push(new WordEntity(randomWord, speed));
+            wordsSpawned++;
+            let kind = 'normal';
+            let text = wordList[Math.floor(Math.random() * wordList.length)];
+            let speed = 0.05 * difficulty + Math.random() * 0.05;
+
+            const roll = Math.random();
+            if (wordsSpawned % 12 === 0) {
+                kind = 'boss';
+                text = bossWordList[Math.floor(Math.random() * bossWordList.length)];
+                speed *= 0.55;
+            } else if (roll < 0.07) {
+                kind = 'emp';
+            } else if (roll < 0.15) {
+                kind = 'slow';
+            } else if (roll < 0.22 && lives < 90) {
+                kind = 'heal';
+            }
+
+            // Avoid spawning a word that shares the same starting letter as many active words
+            words.push(new WordEntity(text, speed, kind));
             
             // Increase difficulty slowly
             difficulty += 0.05;
             clearTimeout(spawnInterval);
-            spawnInterval = setTimeout(spawnWord, Math.max(800, 2000 - difficulty * 100));
+            const slowMult = performance.now() < slowMoUntil ? 1.5 : 1;
+            spawnInterval = setTimeout(spawnWord, Math.max(750, 2000 - difficulty * 100) * slowMult);
         }
+
+        function updateLiveStats() {
+            const minutes = Math.max((performance.now() - startTime) / 60000, 1 / 120);
+            const wpm = charsCleared > 0 ? Math.round((charsCleared / 5) / minutes) : 0;
+            const acc = totalKeys > 0 ? Math.round((correctKeys / totalKeys) * 100) : 100;
+            liveWpmEl.textContent = wpm;
+            liveAccEl.textContent = acc + '%';
+        }
+
+        function updateLivesUI() {
+            livesEl.textContent = lives + '%';
+            livesBarEl.style.width = lives + '%';
+            const col = lives <= 30 ? '#ff2255' : lives <= 60 ? '#ffaa00' : 'var(--neon-pink)';
+            livesEl.style.color = lives <= 30 ? '#ff2255' : '#fff';
+            livesBarEl.style.background = col;
+            livesBarEl.style.boxShadow = `0 0 8px ${col}`;
+        }
+
+        function updateEmpUI() {
+            const pct = Math.min(100, Math.round((empCharge / EMP_MAX) * 100));
+            empValEl.textContent = pct >= 100 ? 'READY!' : pct + '%';
+            empBarEl.style.width = pct + '%';
+            empPanelEl.classList.toggle('ready', empCharge >= EMP_MAX);
+        }
+
+        function wipeScreenWithEmp(sourceLabel = '⚡ EMP BLAST!') {
+            if (words.length === 0) return;
+            sfx.emp();
+            shake();
+            const count = words.length;
+            words.forEach(w => {
+                const pts = w.text.length * 10;
+                score += pts;
+                charsCleared += w.text.length;
+                popup(w.x + w.el.offsetWidth / 2, w.y, `+${pts}`);
+                w.destroy();
+            });
+            words = [];
+            target = null;
+            inputField.value = '';
+            prevLen = 0;
+            scoreEl.textContent = score;
+            popup(window.innerWidth / 2, playHeight * 0.38, `${sourceLabel} (${count} CLEARED)`, true);
+        }
+
+        function triggerEmpAbility() {
+            if (!isPlaying || empCharge < EMP_MAX) return;
+            empCharge = 0;
+            updateEmpUI();
+            wipeScreenWithEmp('⚡ OVERDRIVE EMP!');
+        }
+        empPanelEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            triggerEmpAbility();
+            if (isPlaying) inputField.focus();
+        });
 
         function update(time) {
             if (!isPlaying) return;
-            const dt = time - lastTime;
+            const dt = Math.min(100, time - lastTime); // cap dt so tab switches don't insta-kill
             lastTime = time;
+
+            slowOverlayEl.classList.toggle('active', time < slowMoUntil);
+            updateLiveStats();
 
             for (let i = words.length - 1; i >= 0; i--) {
                 const w = words[i];
                 if (w.move(dt)) {
                     // Missed word
+                    const dmg = w.kind === 'boss' ? 30 : 10;
                     w.el.remove();
                     words.splice(i, 1);
                     if (w === target) target = null;
-                    takeDamage(10);
+                    takeDamage(dmg);
                     resetCombo();
                     if (!isPlaying) return;
                 }
@@ -507,7 +921,7 @@
 
         function takeDamage(amt) {
             lives = Math.max(0, lives - amt);
-            livesEl.textContent = lives + '%';
+            updateLivesUI();
             sfx.damage();
             shake();
             
@@ -517,8 +931,6 @@
 
             if (lives <= 0) {
                 endGame();
-            } else if (lives <= 30) {
-                livesEl.style.color = '#f00';
             }
         }
 
@@ -528,17 +940,45 @@
             const multi = Math.floor(combo / 5) + 1;
             const prevMulti = Math.floor((combo - 1) / 5) + 1;
             multiplierEl.textContent = 'x' + multi;
-            const pts = w.text.length * 10 * multi;
+            const bonusMult = w.kind === 'boss' ? 3 : 1;
+            const pts = w.text.length * 10 * multi * bonusMult;
             score += pts;
             scoreEl.textContent = score;
             charsCleared += w.text.length;
+
+            // Charge EMP ability
+            if (empCharge < EMP_MAX) {
+                empCharge = Math.min(EMP_MAX, empCharge + 1);
+                updateEmpUI();
+                if (empCharge === EMP_MAX) {
+                    popup(window.innerWidth / 2, playHeight * 0.3, '⚡ EMP READY [SPACE]', true);
+                    sfx.levelUp();
+                }
+            }
 
             const cx = w.x + w.el.offsetWidth / 2, cy = w.y;
             popup(cx, cy, `+${pts}` + (multi > 1 ? ` x${multi}` : ''));
             sfx.boom(multi);
             if (multi > prevMulti) {
-                popup(window.innerWidth / 2, window.innerHeight * 0.4, `COMBO x${multi}!`, true);
+                popup(window.innerWidth / 2, playHeight * 0.4, `COMBO x${multi}!`, true);
                 sfx.levelUp();
+            }
+
+            // Trigger special word power-ups (Item 1)
+            if (w.kind === 'emp') {
+                setTimeout(() => wipeScreenWithEmp('💛 EMP PACKET!'), 40);
+            } else if (w.kind === 'slow') {
+                slowMoUntil = performance.now() + 5000;
+                sfx.slow();
+                popup(window.innerWidth / 2, playHeight * 0.35, '❄ OVERCLOCK: 5s SLOW-MO!', true);
+            } else if (w.kind === 'heal') {
+                lives = Math.min(100, lives + 20);
+                updateLivesUI();
+                sfx.heal();
+                popup(cx, cy - 25, '✚ +20% INTEGRITY', true);
+            } else if (w.kind === 'boss') {
+                sfx.levelUp();
+                popup(window.innerWidth / 2, playHeight * 0.35, '☠ FIREWALL BREACHED! 3x PTS', true);
             }
         }
 
@@ -574,22 +1014,80 @@
             }
         }
 
+        // Keyboard shortcuts: Enter/Space on menus (Item 5), Space for EMP (Item 2), Tab/Esc to switch targets (Item 3)
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement === playerNameInput) {
+                if (e.code === 'Enter') {
+                    e.preventDefault();
+                    playerNameInput.blur();
+                    startGame();
+                }
+                return;
+            }
+            if (!isPlaying) {
+                if (e.code === 'Enter' || e.code === 'Space') {
+                    e.preventDefault();
+                    startGame();
+                }
+                return;
+            }
+            if (e.code === 'Space') {
+                e.preventDefault();
+                triggerEmpAbility();
+            } else if (e.code === 'Escape' || e.code === 'Tab') {
+                e.preventDefault();
+                // Clear current input & cycle lock to next lowest word
+                inputField.value = '';
+                prevLen = 0;
+                words.forEach(w => { w.typed = ''; w.updateHTML(); w.el.classList.remove('target'); });
+                const sorted = [...words].sort((a, b) => b.y - a.y);
+                const idx = sorted.indexOf(target);
+                target = sorted.length ? sorted[(idx + 1) % sorted.length] : null;
+                if (target) target.el.classList.add('target');
+            }
+        });
+
         inputField.addEventListener('input', (e) => {
             if (!isPlaying) return;
-            const val = e.target.value.toLowerCase().trim();
+            let val = e.target.value.toLowerCase().trim();
             const grew = val.length > prevLen;
-            prevLen = val.length;
 
             // Lock onto ONE word: keep the current target if it still matches,
             // otherwise pick the matching word closest to the bottom (most dangerous).
+            let matchedTarget = target;
             if (!val) {
-                target = null;
-            } else if (!target || !target.text.startsWith(val)) {
-                target = null;
+                matchedTarget = null;
+            } else if (!matchedTarget || !matchedTarget.text.startsWith(val)) {
+                matchedTarget = null;
                 for (const w of words) {
-                    if (w.text.startsWith(val) && (!target || w.y > target.y)) target = w;
+                    if (w.text.startsWith(val) && (!matchedTarget || w.y > matchedTarget.y)) matchedTarget = w;
                 }
             }
+
+            if (grew) {
+                totalKeys++;
+                if (matchedTarget) {
+                    correctKeys++;
+                    sfx.key();
+                } else {
+                    // Auto-strip the wrong character so the player never has to hit Backspace (Item 3)
+                    sfx.miss();
+                    val = val.slice(0, -1);
+                    inputField.value = val;
+                    inputField.style.backgroundColor = 'rgba(255,0,0,0.28)';
+                    inputField.style.borderColor = '#ff2255';
+                    setTimeout(() => {
+                        inputField.style.backgroundColor = 'var(--glass-bg)';
+                        inputField.style.borderColor = 'var(--neon-blue)';
+                    }, 150);
+                    // Keep existing target locked if there are still valid chars
+                    matchedTarget = val ? target : null;
+                }
+            }
+
+            target = matchedTarget;
+            prevLen = val.length;
+            updateLiveStats();
 
             words.forEach(w => {
                 const isT = w === target;
@@ -598,25 +1096,16 @@
                 w.el.classList.toggle('target', isT);
             });
 
-            if (grew) {
-                totalKeys++;
-                if (target) { correctKeys++; sfx.key(); }
-            }
-
             if (target && val === target.text) {
                 // Word successfully typed
                 const w = target;
-                addScore(w);
-                w.destroy();
-                words.splice(words.indexOf(w), 1);
                 target = null;
                 inputField.value = ''; // Reset input
                 prevLen = 0;
-            } else if (!target && val.length > 0 && grew) {
-                // Typo
-                sfx.miss();
-                inputField.style.backgroundColor = 'rgba(255,0,0,0.2)';
-                setTimeout(() => { inputField.style.backgroundColor = 'var(--glass-bg)'; }, 150);
+                w.destroy();
+                const idx = words.indexOf(w);
+                if (idx !== -1) words.splice(idx, 1);
+                addScore(w);
             }
         });
 
@@ -631,14 +1120,20 @@
             lives = 100;
             combo = 0;
             difficulty = 1;
+            empCharge = 0;
+            slowMoUntil = 0;
+            wordsSpawned = 0;
             correctKeys = totalKeys = charsCleared = bestCombo = prevLen = 0;
             target = null;
             startTime = performance.now();
             
             scoreEl.textContent = '0';
-            livesEl.textContent = '100%';
-            livesEl.style.color = 'inherit';
             multiplierEl.textContent = 'x1';
+            liveWpmEl.textContent = '0';
+            liveAccEl.textContent = '100%';
+            slowOverlayEl.classList.remove('active');
+            updateLivesUI();
+            updateEmpUI();
             
             inputField.disabled = false;
             inputField.value = '';
@@ -646,9 +1141,11 @@
             
             isPlaying = true;
             lastTime = performance.now();
+            startMusic();
             
             clearTimeout(spawnInterval);
-            spawnInterval = setTimeout(spawnWord, 1200);
+            spawnInterval = setTimeout(spawnWord, 900);
+            cancelAnimationFrame(gameLoop);
             gameLoop = requestAnimationFrame(update);
         }
 
@@ -657,6 +1154,8 @@
             isPlaying = false;
             clearTimeout(spawnInterval);
             cancelAnimationFrame(gameLoop);
+            stopMusic();
+            slowOverlayEl.classList.remove('active');
             sfx.over();
             
             inputField.disabled = true;
@@ -665,6 +1164,7 @@
             const minutes = Math.max((performance.now() - startTime) / 60000, 1 / 60);
             const wpm = Math.round((charsCleared / 5) / minutes);
             const acc = totalKeys ? Math.round((correctKeys / totalKeys) * 100) : 0;
+            saveCyberLeaderboard(score, wpm);
             const isNewBest = score > highScore;
             if (isNewBest) {
                 highScore = score;
